@@ -1,0 +1,6 @@
+# virtualenv
+.venv/
+venv/
+
+# miscellanous files
+organiser.py

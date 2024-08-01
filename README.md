@@ -1,0 +1,1 @@
+Build, train, and deploy a custom Transformer model from scratch using the WikiText-2 dataset. This end-to-end project covers transfer learning, hyperparameter tuning with Weights & Biases, model packaging, API deployment, and Kubernetes-based MLOps workflows.
