@@ -4,9 +4,9 @@ import torch.nn.functional as F
 from torch.optim import Adam
 import matplotlib.pyplot as plt
 import logging
-import os
 from transformers import AutoTokenizer
 from datasets import load_dataset
+
 
 
 # Setting up logger
@@ -460,8 +460,7 @@ def hyperparameter_search(raw_text, tokenizer, lrs=[1e-2], batch_sizes=[4], time
     return results
 
 if __name__ == '__main__':
-    try:
-        
+    try:        
         logger.info("Loading WikiText-2 dataset...")
         try:
             dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
