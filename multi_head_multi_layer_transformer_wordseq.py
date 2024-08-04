@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import logging
 from transformers import AutoTokenizer
 from datasets import load_dataset
-
+import wandb
+import os
 
 
 # Setting up logger
@@ -305,7 +306,20 @@ class TransformerModel(nn.Module):
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
         best_val_loss = float('inf')
         stale_checks = 0
-        checkpoint_path = "transformer_checkpoint_wordseq.pt"
+        
+        # --- Dynamic Checkpoint Path ---
+        checkpoints_dir = "model_checkpoints"
+        os.makedirs(checkpoints_dir, exist_ok=True)
+        # # get run-specific config from wandb.run.config
+        # this works whether we are in the main run or a hyperparameter search run
+        current_config = wandb.run.config
+        b_s = current_config.get("batch_size", "N/A")
+        c_w = current_config.get("context_window", "N/A")
+        l_r = current_config.get("learning_rate", "N/A")
+        
+        # Create a dynamic filename for the checkpoint
+        checkpoint_filename = f"transformer_bs{b_s}_cw{c_w}_lr{l_r:.0e}_best.pt"
+        checkpoint_path = os.path.join(checkpoints_dir, checkpoint_filename)
 
         train_losses = []
         val_loss_dict = {}
@@ -321,10 +335,16 @@ class TransformerModel(nn.Module):
             optimizer.step()
 
             train_losses.append(loss.item())
+            
+            # Log training loss to W&B
+            wandb.log({"train/loss": loss.item()}, step=step)
 
             if step % val_check_every == 0 or step == steps: # Also check at the very last step
                 val_loss = self.evaluate_validation_loss(prep_obj,split = 'validation', eval_iters=20) # Pass prep_obj
                 val_loss_dict[step] = val_loss
+                
+                # Log validation loss to W&B
+                wandb.log({"val/loss": val_loss}, step=step)
 
                 logger.info(f"[Step {step}/{steps}] Train Loss: {loss.item():.4f}, Val Loss: {val_loss:.4f}")
                 print(f"[Step {step}/{steps}] Train Loss: {loss.item():.4f}, Val Loss: {val_loss:.4f}")
@@ -336,6 +356,8 @@ class TransformerModel(nn.Module):
                     torch.save(self.state_dict(), checkpoint_path)
                     logger.info(f" ↑ New Best Model (Val Loss: {best_val_loss:.4f}); Checkpoint saved to {checkpoint_path}")
                     print(" ↑ New Best Model; Checkpoint saved.")
+                    # Log best model checkpoint as an artifact
+                    wandb.save(checkpoint_path)
                 else:
                     stale_checks += 1
                     logger.info(f" No improvement for {stale_checks}/{patience} validation checks.")
@@ -348,6 +370,7 @@ class TransformerModel(nn.Module):
         
         if train_losses and val_loss_dict: # Plotting
             plt.figure(figsize=(12, 7))
+
             plt.plot(train_losses, label='Training Loss (per step)', color='lightblue', alpha=0.7, linewidth=1)
             
             if len(train_losses) >= val_check_every: # Smoothed training loss
@@ -363,10 +386,21 @@ class TransformerModel(nn.Module):
             plt.legend()
             plt.grid(True, linestyle='--', alpha=0.6)
             plt.tight_layout()
-            plt.savefig('loss_curve_modified.png')
-            logger.info("Loss curve saved to loss_curve_modified.png")
-            # plt.show() # plt.show() can block execution in some environments, make it optional
-        else:
+
+            # Create a directory for plots if it doesn't exist
+            plots_dir = "training_plots"
+            os.makedirs(plots_dir, exist_ok=True)
+            
+            
+            # Create a dynamic filename including relevant hyperparameters
+            # Use the variables b_s, c_w, l_r directly
+            plot_filename = f"loss_curve_bs{b_s}_cw{c_w}_lr{l_r:.0e}.png"
+            plot_path = os.path.join(plots_dir, plot_filename)
+            
+            plt.savefig(plot_path) # Now saving to the dynamically generated path
+            wandb.log({"loss_curve": wandb.Image(plot_path)}, step=step) # Log the plot
+            logger.info(f"Loss curve saved to {plot_path} and logged to W&B.")
+        else: # This is the correct 'else' block for when no data is available
             logger.info("No data for plotting loss curves.")
 
 
@@ -522,6 +556,8 @@ if __name__ == '__main__':
             _, loss_before = model(xb, yb)
             logger.info(f"Initial loss before training: {loss_before.item():.4f} (Expected for random ~{expected_initial_loss:.2f})")
             print(f"Initial loss before training: {loss_before.item():.4f} (Expected for random ~{expected_initial_loss:.2f})")
+            # logging to wandb
+            wandb.log({"initial_loss": loss_before.item()})
         except Exception as e:
             logger.error(f"Could not perform initial loss check: {e}", exc_info=True)
 
@@ -546,6 +582,7 @@ if __name__ == '__main__':
             _, loss_after = model(xb, yb) 
             logger.info(f"Post-training loss (on one sample train batch): {loss_after.item():.4f}")
             print(f"Post-training loss (on one sample train batch): {loss_after.item():.4f}")
+            wandb.log({"post_training_sample_train_loss": loss_after.item()})
 
         # --- Evaluate on Test Set ---
         logger.info("Evaluating on test set...")
@@ -553,15 +590,18 @@ if __name__ == '__main__':
         # Evaluate the value and format it conditionally
         if test_loss_avg is not None and not torch.isnan(torch.tensor(test_loss_avg)):
             formatted_test_loss = f"{test_loss_avg:.4f}"
+            wandb.log({"test_loss_avg": test_loss_avg})
         else:
             formatted_test_loss = 'N/A'
+            wandb.log({"test_loss_avg": float('nan')})
 
         logger.info(f"Average Test Set Loss: {formatted_test_loss}")
         print(f"Average Test Set Loss: {formatted_test_loss}")
 
         # --- Text Generation ---
         logger.info("Generating text...")
-        prompt_text = 'Romeo, Romeo, wherefore art thou' # A classic prompt
+        prompt_text = 'Romeo, Romeo, wherefore art thou' 
+        wandb.log({"prompt_text": prompt_text}) # logging prompt in wandb
         input_ids = torch.tensor([prep.encode_string(prompt_text)], dtype=torch.long).to(DEVICE)
         
         generated_ids = model.generate(input_ids, max_tokens_ahead=50, temperature=0.7, top_k=40)
@@ -571,6 +611,12 @@ if __name__ == '__main__':
         print(generated_text)
         print("--- End of Generated Text ---")
         logger.info(f"Generated text for prompt '{prompt_text}': {generated_text}")
+        wandb.log({"generated_text": wandb.Html(f"<pre>{generated_text}</pre>")})
+        
+        # saving final trained model as a wandb artifact
+        model_artifact = wandb.Artifact(
+            name = 
+        )
 
     except ValueError as e:
         logger.critical(f"Value error during execution: {e}", exc_info=True)
