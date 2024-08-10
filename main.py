@@ -31,7 +31,7 @@ def run_training(args):
     wandb.init(
         project=wandb_project,
         entity=wandb_entity,
-        name="wikitext-2_main_training_run",
+        name="wikitext-2_main_training_run_with_dropout",
         notes="Training a decoder-only multi-head, multi-layer transformer on WikiText-2 raw using GPT2 tokenizer.",
         tags=["transformer", "wikitext2", "language_model", "pytorch", "main_run"],
         reinit=True
