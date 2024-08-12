@@ -19,7 +19,7 @@ TRAIN_NUM_LAYERS = 12
 TRAIN_LEARNING_RATE = 5e-4
 TRAIN_STEPS = 20000
 TRAIN_VALIDATION_CHECK_EVERY = 100
-TRAIN_EARLY_STOPPING_PATIENCE = 15
+TRAIN_EARLY_STOPPING_PATIENCE = 20
 
 # --- Data Loading Configuration ---
 # Set the maximum number of characters to use for training
