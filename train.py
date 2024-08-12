@@ -32,19 +32,19 @@ def evaluate_validation_loss(model, prep_obj, split = 'validation', eval_iters=2
     model.train() #
     return sum(losses) / len(losses) if losses else float('nan') #
 
-def train_model(model, prep_obj, steps=2000, val_check_every=50, patience=4, min_delta=1e-2, lr=5e-3):
+def train_model(model, prep_obj, steps=2000, val_check_every=50, patience=4, min_delta=1e-3, lr=5e-3):
     """
     Training loop with early stopping, validation checks, and plotting.
     """
     model.to(DEVICE) #
-    logger.info(f"Starting training on {DEVICE}") #
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr) #
-    best_val_loss = float('inf') #
-    stale_checks = 0 #
+    logger.info(f"Starting training on {DEVICE}") 
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = 1e-5) # l2 regularisation
+    best_val_loss = float('inf') 
+    stale_checks = 0 
     
     checkpoints_dir = "model_checkpoints" #
     os.makedirs(checkpoints_dir, exist_ok=True) #
-    current_config = wandb.run.config #
+    current_config = wandb.run.config 
     b_s = current_config.get("batch_size", "N/A") #
     c_w = current_config.get("context_window", "N/A") #
     l_r = current_config.get("learning_rate", "N/A") #
