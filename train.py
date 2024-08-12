@@ -32,7 +32,7 @@ def evaluate_validation_loss(model, prep_obj, split = 'validation', eval_iters=2
     model.train() #
     return sum(losses) / len(losses) if losses else float('nan') #
 
-def train_model(model, prep_obj, steps=2000, val_check_every=50, patience=4, min_delta=1e-4, lr=5e-3):
+def train_model(model, prep_obj, steps=2000, val_check_every=50, patience=4, min_delta=1e-2, lr=5e-3):
     """
     Training loop with early stopping, validation checks, and plotting.
     """
