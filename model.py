@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__) # Use __name__ for module-specific logging
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, embed_dim, num_heads, context_window, dropout_rate=0.1):
+    def __init__(self, embed_dim, num_heads, context_window, dropout_rate=0.2):
         super().__init__()
         assert embed_dim % num_heads == 0, "Embedding dimension must be divisible by number of heads"
         self.num_heads = num_heads
@@ -39,7 +39,7 @@ class MultiHeadAttention(nn.Module):
         return self.proj_dropout(self.out_proj(out)) # Apply dropout here
 
 class TransformerBlock(nn.Module):
-    def __init__(self, channel_dim, num_heads, context_window, dropout_rate=0.1):
+    def __init__(self, channel_dim, num_heads, context_window, dropout_rate=0.2):
         super().__init__()
         self.ln1 = nn.LayerNorm(channel_dim)
         self.attn = MultiHeadAttention(channel_dim, num_heads, context_window, dropout_rate)
