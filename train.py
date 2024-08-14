@@ -38,7 +38,7 @@ def train_model(model, prep_obj, steps=2000, val_check_every=50, patience=4, min
     """
     model.to(DEVICE) #
     logger.info(f"Starting training on {DEVICE}") 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = 1e-5) # l2 regularisation
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay = 1e-4) # l2 regularisation
     best_val_loss = float('inf') 
     stale_checks = 0 
     
