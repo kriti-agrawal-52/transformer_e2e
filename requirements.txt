@@ -65,7 +65,7 @@ smmap==5.0.2
 SQLAlchemy==2.0.30            # Needed for ipython-sql, compatible with Alembic
 sympy==1.13.1                 # Required by torch==2.6.0
 tokenizers==0.21.1
-torch==2.6.0                  # Latest Torch, compatible with torchvision and sympy==1.13.1
+torch==2.2.2                  # Torch, compatible with torchvision and sympy==1.13.1
 torchvision==0.17.2
 tqdm==4.67.1
 transformers==4.52.1
