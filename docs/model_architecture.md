@@ -116,3 +116,20 @@ Each dropout layer randomly turns off (zeroes out) some outputs during training 
 - Always create a **separate** `nn.Dropout` object for each layer.
 - This ensures each layer gets a fresh random mask during training.
 - It helps the model learn independently in each layer and improves generalization.
+
+---
+
+## Why dropout_rate = 0.2 is not too low for our model
+
+- Transformers are already heavily regularized by design
+
+They use LayerNorm, residual connections, and attention masking, which already add stability and structure.
+Too much dropout could impair convergence, especially with small models and CPUs (as in our use case).
+
+- 0.1–0.3 is standard in Transformer literature
+
+Some real-world defaults:
+
+GPT-2 (small): uses 0.1–0.2 dropout
+BERT-base: uses 0.1
+T5 and GPT-J: use 0.1 to 0.3 depending on depth
