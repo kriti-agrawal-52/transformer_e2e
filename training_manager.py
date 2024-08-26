@@ -21,7 +21,7 @@ def run_post_training_eval(model, prep, best_model_path, cfg, device):
             logger.info(f"Loaded best model from {best_model_path} for final eval.")
 
             # Evaluate on test set
-            test_loss = model.evaluate_validation_loss(model, prep, device, "test", cfg.EVAL_ITERS_TEST)
+            test_loss = evaluate_validation_loss(model, prep, device, "test", cfg.EVAL_ITERS_TEST)
             test_loss_str = (
                 f"{test_loss:.4f}"
                 if not torch.isnan(torch.tensor(test_loss))
@@ -43,7 +43,7 @@ def log_artifact(checkpoint_path, run_id, run_params, cfg):
 
     logger.info(f"Logging model artifact from {checkpoint_path}")
     try:
-        artifact_name = f"{cfg.WANDB_PROJECT}/model-{run_id}" 
+        artifact_name = f"{cfg.WANDB_PROJECT}_model-{run_id}" 
         # Using wandb.Artifact explicitly registers the model in the W&B Model Registry.
         # This is done once after the single training run completes.
         model_artifact = wandb.Artifact(
