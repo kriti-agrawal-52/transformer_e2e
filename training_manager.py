@@ -112,6 +112,33 @@ class TrainingManager:
                 wandb.finish()
                 return self.best_ckpt_path # Return best path even if skipped
             
+            # Build parameter groups for AdamW so that weight-decay (L2 regularisation) is applied **only** to the parameters that benefit from it.
+            """
+            Why do we split parameters?
+            Weight decay (L2 regularization) helps reduce overfitting by shrinking large weights.
+            But not all parameters should be regularized! Specifically:
+
+            Bias terms and LayerNorm (or RMSNorm) parameters play stabilizing roles and should NOT be regularized. Including them in weight decay can harm convergence and model capacity.
+
+            Intuition behind exclusions:
+            -----------------------------------------------------------------------------
+            • Biases (e.g., `*.bias`):
+            - Bias adds a constant shift to the activation.
+            - It allows the neuron to activate even when inputs are zero.
+            - It **does not contribute to model complexity or overfitting** much.
+            - Applying weight decay pushes bias toward zero, which reduces model flexibility
+            and may prevent certain neurons from activating effectively.
+            
+            • LayerNorm weights (e.g., `*.weight` in LayerNorm or RMSNorm):
+            - These are 1-D scale vectors (γ) applied after normalizing the activations.
+            - They **restore variance** after normalization.
+            - If you apply weight decay here, γ gets pulled toward zero,
+            which effectively cancels out the normalized signal — destabilizing training.
+            
+            • General heuristic:
+            Any parameter with `ndim == 1` is typically a scale or bias vector
+            Exclude from weight decay.
+            """
             decay_params, no_decay_params = [], []
             for name, param in model.named_parameters():
                 if not param.requires_grad:  # frozen parameters which wont get trained
