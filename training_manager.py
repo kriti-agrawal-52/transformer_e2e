@@ -111,8 +111,32 @@ class TrainingManager:
                 print(f"Run {self.run_id} already completed. Skipping.")
                 wandb.finish()
                 return self.best_ckpt_path # Return best path even if skipped
-
-            optimizer = optim.Adam(model.parameters(), lr=self.params["learning_rate"])
+            
+            decay_params, no_decay_params = [], []
+            for name, param in model.named_parameters():
+                if not param.requires_grad:  # frozen parameters which wont get trained
+                    continue
+                
+                # Anything that is purely multiplicative-scaling or a bias stays out
+                if (
+                    param.ndim == 1  # vectors (eg: LayerNorm weight)
+                    or name.endswith(".bias")
+                    or "layernorm" in name.lower()
+                    or "ln" in name.lower()
+                ):
+                    no_decay_params.append(param)
+                else:
+                    decay_params.append(param)
+            
+            # Create the optimizer with the 2 groups
+            weight_decay = self.params.get("weight_decay", 0.01)  
+            optimizer = optim.AdamW(
+                [
+                    {'params': decay_params, 'weight_decay': weight_decay},
+                    {'params': no_decay_params, 'weight_decay': 0.0},
+                ],
+                lr = self.params['learning_rate'], 
+            )
             
             best_model_path = train_loop(
                 model,
