@@ -120,12 +120,13 @@ def train_loop(
         model,
         prep_obj,
         optimizer,
+        scheduler,
         cfg, 
         run_params,  # pass the specific run's parameters
         device,
         start_step = 1,
         initial_optimizer_state = None,
-        initial_best_loss = float('-inf') 
+        initial_best_loss = float('inf') 
     ):
         """Executes the training loop with validation, stopping, and checkpoints."""
         model.to(device)  # Move model to device
@@ -188,6 +189,11 @@ def train_loop(
                     val_loss = evaluate_validation_loss(model, prep_obj, device, "validation", cfg.EVAL_ITERS_VAL)
                     val_loss_dict[step] = val_loss
                     wandb.log({"val/loss": val_loss}, step=step)
+                    
+                    # Log current learning rate
+                    current_lr = optimizer.param_groups[0]['lr']
+                    wandb.log({"learning_rate": current_lr}, step=step)
+                
                     logger.info(
                         f"[Step {step}/{steps}] Train: {loss.item():.4f}, Val: {val_loss:.4f}"
                     )
@@ -213,6 +219,12 @@ def train_loop(
                         stale_checks += 1
                         logger.info(f" No improvement: {stale_checks}/{patience}")
                         print(f" No improvement: {stale_checks}/{patience}")
+                        
+                    # Update learning rate scheduler
+                    # The scheduler automatically tracks its own patience counter (separate from early stopping).
+                    # It counts how many validation steps pass without improvement and halves the LR 
+                    # when its patience (5 steps) is exceeded. We just call step() and it handles everything.
+                    scheduler.step(val_loss)
 
                     # Early stopping check
                     # we have waited for threshold number of validations (patience) and model has not shown considerable improvement

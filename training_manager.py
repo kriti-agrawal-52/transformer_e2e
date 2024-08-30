@@ -1,6 +1,7 @@
 # training_manager.py
 import torch
 import torch.optim as optim
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 import wandb
 import os
 import logging
@@ -165,10 +166,21 @@ class TrainingManager:
                 lr = self.params['learning_rate'], 
             )
             
+            # Halve the LR (factor=0.5) if val_loss doesn’t improve by >min_delta for 5 validation checks (mode="min" means lower loss is better)
+            
+            scheduler = ReduceLROnPlateau(
+                optimizer, 
+                mode = 'min',
+                factor = 0.5, 
+                patience = 5, 
+                threshold = self.cfg.MIN_DELTA
+            )
+            
             best_model_path = train_loop(
                 model,
                 prep,
                 optimizer,
+                scheduler,
                 self.cfg,
                 self.params, # Pass run_params
                 self.device,
