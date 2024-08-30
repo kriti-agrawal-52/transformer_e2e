@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import logging
 import torch.nn.functional as F
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class MultiHeadAttention(nn.Module):
     previous tokens in the sequence.
     """
     
-    def __init__(self, embed_dim, num_heads, context_window, dropout_rate = 0.2):
+    def __init__(self, embed_dim, num_heads, context_window, dropout_rate = 0.1):
         """Initialises the MultiHeadAttentionModule"""
         super().__init__()
         assert (embed_dim % num_heads == 0), "Embedding dimension must be divisible by number of attention heads."
@@ -47,7 +48,8 @@ class MultiHeadAttention(nn.Module):
         """
         
         self.attn_dropout = nn.Dropout(dropout_rate)  # Dropout after softmax attention weights
-        self.proj_dropout = nn.Dropout(dropout_rate)
+        self.resid_dropout = nn.Dropout(dropout_rate)
+        print(f"attention layer, dropout rate: {dropout_rate}\n")
         
     def forward(self, x):
         """Performs forward pass for multi-head attention"""
@@ -108,7 +110,7 @@ class MultiHeadAttention(nn.Module):
         out = attn_output.transpose(1, 2).contiguous().view(B, T, C)
         
         # Final output projection
-        return self.proj_dropout(self.out_proj(out))  # Apply dropout here
+        return self.resid_dropout(self.out_proj(out))  # Apply dropout here
     
 class TransformerBlock(nn.Module):
     """
@@ -178,7 +180,7 @@ class TransformerModel(nn.Module):
     early stopping.
     """
     
-    def __init__(self, vocab_size, channel_dim, context_window, num_heads = 8, num_layers = 6, dropout_rate = 0.2):
+    def __init__(self, vocab_size, channel_dim, context_window, num_heads = 8, num_layers = 6, dropout_rate = 0.2, final_dropout_multiplier = None, max_dropout_val = 0.5):
         super().__init__()
         # Embedding table: maps token indices to vectors of size channel_dim
         # We are learning our token embeddings from scratch, ie they will be initialised with random values
@@ -187,13 +189,37 @@ class TransformerModel(nn.Module):
         # Positional embedding: One vector per position upto the context window
         self.position_embedding = nn.Embedding(context_window, channel_dim)
         
-        self.pos_emb_dropout = nn.Dropout(dropout_rate)  # dropout after positional embeddings
+        # Determining dropout for positional embeddings 
+        # Uses the base dropout_rate
+        pos_emb_dropout_val = dropout_rate # Base rate for positional embedding
         
+        self.pos_emb_dropout = nn.Dropout(pos_emb_dropout_val)  # dropout after positional embeddings
+        
+        # Determining dropout rates for transformer blocks
+        initial_layer_dropout = dropout_rate
+        if final_dropout_multiplier is not None and final_dropout_multiplier != 1 and num_layers > 1:
+            # calculate final dropout rate, capped by max_dropout_val
+            # allows scaling up (multiplier > 1) or scaling down (multiplier < 1)
+            final_layer_dropout = min(initial_layer_dropout* final_dropout_multiplier, max_dropout_val)
+            final_layer_dropout = max(0.0, final_layer_dropout)  # Ensure dropout is not negative
+            
+            # Linearly interpolate dropout rates from initial to deep most layer ie final layer
+            layer_dropout_rates = [
+                    initial_layer_dropout + (final_layer_dropout - initial_layer_dropout) * (i / (num_layers - 1))
+                    for i in range(num_layers)
+                ]
+            logger.info(f"Linearly scaling dropout from {initial_layer_dropout:.3f} to {final_layer_dropout:.3f} over {num_layers} layers. Result: {[float(f'{dr:.3f}') for dr in layer_dropout_rates]}")
+        else:
+            # Use the same initial_layer_dropout for all layers
+            layer_dropout_rates = [initial_layer_dropout] * num_layers
+            logger.info(f"Using uniform dropout rate of {initial_layer_dropout} for all {num_layers} layers.")
+        
+            
         # Stack of transformer blocks
         self.transformer_blocks = nn.ModuleList(
             [
-                TransformerBlock(channel_dim, num_heads, context_window, dropout_rate)
-                for _ in range(num_layers)
+                TransformerBlock(channel_dim, num_heads, context_window, dropout_rate = layer_dropout_rates[i])  # Pass the specific dropout rate for this layer
+                for i in range(num_layers)
             ]
         )
         self.ln_f = nn.LayerNorm(channel_dim)

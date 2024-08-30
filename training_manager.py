@@ -213,6 +213,10 @@ def run_single_training(raw_text, tokenizer, cfg):
     logger.info("--- Starting Single Training Run ---")
     cfg.LEARNING_RATE = float(cfg.LEARNING_RATE)
     run_id = f"single_bs{cfg.BATCH_SIZE}_cw{cfg.CONTEXT_WINDOW}_lr{cfg.LEARNING_RATE:.0e}"
+    # base dropout rate
+    base_dropout = getattr(cfg, 'DROPOUT_RATE', 0.1)  # Default to 0.1 if not in cfg
+    final_multiplier = getattr(cfg, 'FINAL_DROPOUT_MULTIPLIER', None)  # Default to None if not in cfg
+    max_dropout = getattr(cfg, 'MAX_DROPOUT_VAL', 0.5)
     single_params = {
         "batch_size": cfg.BATCH_SIZE,
         "context_window": cfg.CONTEXT_WINDOW,
@@ -223,6 +227,9 @@ def run_single_training(raw_text, tokenizer, cfg):
         "channel_dim": cfg.CHANNEL_DIM,
         "num_heads": cfg.NUM_HEADS,
         "num_layers": cfg.NUM_LAYERS,
+        "dropout_rate": base_dropout,
+        "final_dropout_multiplier": final_multiplier,
+        "max_dropout_val": max_dropout,
         "name": f"{cfg.WANDB_RUN_PREFIX[0]}_{run_id}", # Added run_id to name
         "notes": "Single training run with standard parameters.",
         "tags": ["single_run", cfg.DATASET_NAME, "transformer"],
@@ -237,6 +244,9 @@ def run_hyperparameter_search(raw_text, tokenizer, cfg):
     """Configures and runs multiple training sessions for tuning."""
     logger.info("--- Starting Hyperparameter Search ---")
     results = []
+    base_dropout = getattr(cfg, 'DROPOUT_RATE', 0.1)  # Default to 0.1 if not in cfg
+    final_multiplier = getattr(cfg, 'FINAL_DROPOUT_MULTIPLIER', None)  # Default to None if not in cfg
+    max_dropout = getattr(cfg, 'MAX_DROPOUT_VAL', 0.5)
     for bs in cfg.HP_SEARCH_BATCH_SIZES:
         for cw in cfg.HP_SEARCH_CONTEXT_WINDOWS:
             for lr in cfg.HP_SEARCH_LRS:
@@ -254,6 +264,9 @@ def run_hyperparameter_search(raw_text, tokenizer, cfg):
                     "channel_dim": cfg.CHANNEL_DIM,
                     "num_heads": cfg.NUM_HEADS,
                     "num_layers": cfg.NUM_LAYERS,
+                    "dropout_rate": base_dropout,
+                    "final_dropout_multiplier": final_multiplier,
+                    "max_dropout_val": max_dropout,
                     "name": run_name,
                     "notes": f"Tuning: BS={bs}, CW={cw}, LR={lr}",
                     "tags": ["tuning", cfg.DATASET_NAME, "transformer"],

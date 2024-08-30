@@ -34,6 +34,9 @@ MIN_DELTA: 0.001 # we should not make this value too small because we want to ha
 EVAL_ITERS_VAL: 20 # for calculating evaluation loss, we randomly take EVAL_ITERS_VAL batches of validation set, and take their average loss.
 EVAL_ITERS_TEST: 50
 VALIDATION_CHECK_EVERY: 100
+DROPOUT_RATE: 0.1
+FINAL_DROPOUT_MULTIPLIER: 4
+MAX_DROPOUT_VAL: 0.5
 EARLY_STOPPING_PATIENCE: 25 # 20
 
 # --- TRAINING HYPERPARAMETERS GRID SEARCH FOR HYPERPARAMETER SEARCH ---
