@@ -10,3 +10,7 @@ model_checkpoints/
 training_plots/
 transformer_main.log
 wandb_cleanup.py
+
+finetuning_docs/
+transformer_main.log
+wandb/

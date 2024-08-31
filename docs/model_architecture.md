@@ -133,3 +133,41 @@ Some real-world defaults:
 GPT-2 (small): uses 0.1–0.2 dropout
 BERT-base: uses 0.1
 T5 and GPT-J: use 0.1 to 0.3 depending on depth
+
+## --- Dropout Strategy Explanation ---
+
+In this transformer architecture, we use dropout as a regularization strategy to prevent overfitting.
+However, instead of applying a uniform dropout rate across all transformer blocks, we incrementally
+increase the dropout rate as we go deeper into the network. Here's why this approach is sensible:
+
+1. **Why larger dropout in deeper layers is okay**:
+
+   - Deeper layers of a transformer learn higher-level, more abstract representations.
+   - These deeper features tend to be more co-adapted (i.e., strongly dependent on each other),
+     which can lead to overfitting if not properly regularized.
+   - By increasing dropout rate in deeper layers, we encourage the model to learn robust and
+     more generalized patterns by preventing reliance on specific units.
+
+2. **Dropout implementation logic in our model**:
+
+   - We define a base dropout rate in config.yml (`DROPOUT_RATE`), and a multiplier
+     (`FINAL_DROPOUT_MULTIPLIER`) to scale up the dropout rate for deeper layers.
+   - The dropout rate increases linearly with the depth of each transformer block.
+     For example, if we have 8 layers, the dropout rate for layer `i` (0-based) is:
+     dropout_i = base_dropout + (i / (num_layers - 1)) \* (final_dropout - base_dropout)
+     where final_dropout = base_dropout × FINAL_DROPOUT_MULTIPLIER, clipped to `MAX_DROPOUT_VAL`.
+
+3. **Dropout in Multi-Head Attention (MHA)**:
+
+   - Each `MultiHeadAttention` module uses the _base_ dropout rate (`DROPOUT_RATE`) from the config.
+   - This is because attention scores, being relatively low-level and crucial for token-to-token
+     interaction, benefit more from stable training and less aggressive regularization.
+
+4. **Dropout in final feedforward projection layer (after all transformer blocks)**:
+   - After all transformer blocks have run, the model uses a final non-linear output projection (e.g., `lm_head`)
+   - Here too, we apply the _base_ dropout rate (`DROPOUT_RATE`) before projecting to vocabulary logits.
+   - Using base dropout at the end ensures we don’t heavily regularize the final predictions,
+     which could otherwise lead to underconfident output probabilities.
+
+This layered dropout strategy provides a balance: stable training in early layers,
+regularization of co-adapted features in deeper layers, and a clean output prediction pipeline.

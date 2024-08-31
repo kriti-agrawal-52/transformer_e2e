@@ -1,0 +1,18 @@
+# .flake8
+[flake8]
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    env,
+    venv,
+    .mypy_cache,
+    .pytest_cache,
+    build,
+    dist
+ignore =
+    E501,
+    W503
+# ignore the above error codes globally
+max-line-length = 120
+max-complexity = 10  
