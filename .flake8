@@ -19,5 +19,6 @@ ignore =
 # E203: Whitespace before ':' (e.g., slices) – Black prefers space
 # W503: Line break before binary operator – Black enforces this style
 # ignore the above error codes globally
-max-line-length = 120
-max-complexity = 10  
+max-line-length = 88
+max-complexity = 10
+extend-ignore = E203  

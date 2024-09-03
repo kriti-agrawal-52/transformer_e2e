@@ -5,13 +5,13 @@ import logging
 import sys
 from transformers import AutoTokenizer
 import os
-from model import TransformerModel
-from utils_generate_config import load_config
+from src.models.transformer import TransformerModel
+from src.utils.config_loader import load_config
 
 logger = logging.getLogger(__name__)
 
 # load configurations
-generate_cfg = load_config("generate_config.yml")
+generate_cfg = load_config("configs/generate_config.yml")
 
 
 def setup_logging(cfg):

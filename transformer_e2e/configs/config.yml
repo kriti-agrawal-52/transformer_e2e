@@ -64,3 +64,6 @@ LOSS_PLOT_DIRECTORY: "train_eval_plots/" # directory for loss plots
 MAX_TOKENS_AHEAD: 100
 TEMPERATURE: 0.7
 TOP_K: 40
+
+# --- TRAINING MANAGEMENT ---
+DELETE_LATEST_CHECKPOINT_ON_COMPLETION: True # Set to True to enable deletion, False to keep

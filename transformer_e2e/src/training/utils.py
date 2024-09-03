@@ -1,3 +1,4 @@
+# training/utils.py
 import torch
 import wandb
 import os
@@ -7,14 +8,15 @@ import matplotlib.pyplot as plt
 logger = logging.getLogger(__name__)
 
 
-def save_checkpoint(step, model, optimizer, best_loss, path):
-    """Saves a checkpoint containing model/optimizer states and step."""
+def save_checkpoint(step, model, optimizer, best_loss, path, completed = False):
+    """Saves a checkpoint containing model/optimizer states, step and training completion status"""
     torch.save(
         {
             "step": step,
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "best_val_loss": best_loss,
+            "completed": completed,
         },
         path,
     )
@@ -22,10 +24,11 @@ def save_checkpoint(step, model, optimizer, best_loss, path):
 
 
 def load_checkpoint(model, checkpoint_path, device):
-    """Loads a checkpoint and returns the start step, optimizer state, and best loss."""
+    """Loads a checkpoint and returns the start step, optimizer state, best loss, and completion status"""
     start_step = 1
     opt_state = None
     best_loss = float("inf")
+    was_completed = False  # Default to false
     if os.path.exists(checkpoint_path):
         logger.info(f"Found checkpoint: {checkpoint_path}. Attempting to resume.")
         print(f"Resuming from checkpoint: {os.path.basename(checkpoint_path)}")
@@ -35,9 +38,11 @@ def load_checkpoint(model, checkpoint_path, device):
             opt_state = checkpoint["optimizer_state_dict"]
             start_step = checkpoint["step"] + 1
             best_loss = checkpoint.get("best_val_loss", float("inf"))
+            was_completed = checkpoint.get("completed", False) # Load completion status
             logger.info(
                 f"Resuming from step {start_step} "
                 f"with best_val_loss {best_loss:.4f}"
+                f"{' (Previously completed)' if was_completed else ''}" # Log if completed
             )
         except Exception as e:
             logger.error(
@@ -49,7 +54,7 @@ def load_checkpoint(model, checkpoint_path, device):
     else:
         logger.info("No checkpoint found. Starting fresh.")
 
-    return start_step, opt_state, best_loss
+    return start_step, opt_state, best_loss, was_completed
 
 
 def plot_and_log_loss(
@@ -185,6 +190,8 @@ def train_loop(
     val_loss_dict = {}
     model.train()
 
+    training_completed_successfully = False  # Flag to track if training finished without interruption
+    
     # Single run training loop
     for step in range(
         start_step, steps + 1
@@ -227,14 +234,14 @@ def train_loop(
                 )
 
                 save_checkpoint(
-                    step, model, optimizer, best_val_loss, latest_checkpoint_path
+                    step, model, optimizer, best_val_loss, latest_checkpoint_path, completed = False
                 )  # we are checkpointing the model here
 
                 if val_loss < best_val_loss - cfg.MIN_DELTA:
                     best_val_loss = val_loss
                     stale_checks = 0
                     save_checkpoint(
-                        step, model, optimizer, best_val_loss, best_checkpoint_path
+                        step, model, optimizer, best_val_loss, best_checkpoint_path, completed = False  # Best checkpoint not necessarily final completion
                     )  # saved in the best_checkpoint path as the new best model during training
                     logger.info(f" New Best Model (Val: {best_val_loss:.4f})")
                     print(" New Best Model; Checkpoint saved.")
@@ -258,14 +265,34 @@ def train_loop(
                 if stale_checks >= patience:
                     logger.warning(">>> Early stopping triggered.")
                     print(">>> Early stopping triggered.")
-                    break
+                    training_completed_successfully = True # Mark as completed on early stop
+                    break  # Exit the loop
         except Exception as e:
             logger.error(f"Error during step {step}: {e}", exc_info=True)
             print(f"ERROR during step {step}. Saving latest checkpoint and exiting.")
+            # Save latest checkpoint on error, but not as completed
             save_checkpoint(
-                step, model, optimizer, best_val_loss, latest_checkpoint_path
+                step, model, optimizer, best_val_loss, latest_checkpoint_path, completed = False
             )
             raise  # Re-raise to stop
+    
+    # After the loop (either completed all steps or early stopped)
+    else: # This 'else' block executes if the loop completes *without* a 'break' (i.e., all steps finished)
+        training_completed_successfully = True
+        
+    # Save the final latest checkpoint with completion status
+    if training_completed_successfully:
+        save_checkpoint(
+            step, model, optimizer, best_val_loss, latest_checkpoint_path, completed=True
+        )
+        # If best_checkpoint_path exists and training was successful,
+        # ensure it's also marked as completed if it was the last checkpoint
+        if os.path.exists(best_checkpoint_path):
+            best_checkpoint_data = torch.load(best_checkpoint_path)
+            best_checkpoint_data['completed'] = True
+            torch.save(best_checkpoint_data, best_checkpoint_path)
+    
+    
 
     # Plot loss curves at the end
     plot_and_log_loss(

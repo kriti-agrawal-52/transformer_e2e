@@ -4,9 +4,9 @@ import logging
 import wandb
 import sys
 
-from utils_config import load_config
-from utils_data import setup_data_and_tokenizer
-from training_manager import run_single_training, run_hyperparameter_search
+from src.utils.config_loader import load_config
+from src.data.processing import setup_data_and_tokenizer
+from src.training.manager import run_single_training, run_hyperparameter_search
 
 
 def main():
@@ -22,13 +22,13 @@ def main():
     parser.add_argument(
         "--config",
         type=str,
-        default="config.yml",
+        default="configs/config.yml",
         help="Path to the configuration YAML file.",
     )
     args = parser.parse_args()
 
     # Load configuration
-    cfg = load_config("config.yml")
+    cfg = load_config(args.config)
 
     # Setup logging
     logging.basicConfig(
@@ -53,7 +53,7 @@ def main():
     try:
         # Load data based on config or mode
         should_run = (args.mode == "single" and cfg.SHOULD_TRAIN_SINGLE_RUN) or (
-            args.mode == "sweep" and cfg.SHOULD_TUNE
+            args.mode == "sweep" and cfg.SHOULD_HYPERPARAMETER_SEARCH
         )
         if should_run:
             raw_text, tokenizer = setup_data_and_tokenizer(cfg)

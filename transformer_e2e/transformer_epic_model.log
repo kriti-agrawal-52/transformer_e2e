@@ -1,0 +1,41 @@
+2025-06-06 19:45:16,310 - __main__ - INFO - Starting training process with mode: single
+2025-06-06 19:45:16,310 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-06 19:45:47,241 - datasets.load - WARNING - Using the latest cached version of the dataset since wikitext couldn't be found on the Hugging Face Hub
+2025-06-06 19:45:47,244 - datasets.packaged_modules.cache.cache - WARNING - Found the latest cached dataset configuration 'wikitext-2-raw-v1' at /Users/kritiagrawal/.cache/huggingface/datasets/wikitext/wikitext-2-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 (last modified on Wed May 21 17:14:25 2025).
+2025-06-06 19:45:47,310 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-06 19:45:47,486 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-06 19:45:47,486 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-06 19:46:35,265 - src.training.manager - INFO - --- Starting Single Training Run ---
+2025-06-06 19:46:38,822 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-06 19:46:54,860 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-06 19:46:55,199 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-06 19:46:55,446 - src.models.transformer - INFO - Using uniform dropout rate of 0.2 for all 8 layers.
+2025-06-06 19:46:55,897 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-06 19:46:57,528 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-06 19:51:30,907 - __main__ - INFO - Training process finished.
+2025-06-06 23:51:14,311 - __main__ - INFO - Starting training process with mode: single
+2025-06-06 23:51:14,311 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-06 23:51:25,691 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-06 23:51:25,923 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-06 23:51:25,924 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-06 23:51:27,270 - src.training.manager - INFO - --- Starting Single Training Run ---
+2025-06-06 23:51:30,337 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-06 23:51:49,931 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-06 23:51:50,215 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-06 23:51:50,412 - src.models.transformer - INFO - Using uniform dropout rate of 0.2 for all 8 layers.
+2025-06-06 23:51:50,808 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-06 23:51:52,721 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-06 23:54:47,913 - __main__ - INFO - Training process finished.
+2025-06-07 00:21:30,680 - __main__ - INFO - Starting training process with mode: single
+2025-06-07 00:21:30,680 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-07 00:21:40,980 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-07 00:21:41,163 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-07 00:21:41,164 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-07 00:21:42,241 - src.training.manager - INFO - --- Starting Single Training Run ---
+2025-06-07 00:21:45,503 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-07 00:22:10,335 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-07 00:22:10,600 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-07 00:22:10,773 - src.models.transformer - INFO - Using uniform dropout rate of 0.2 for all 8 layers.
+2025-06-07 00:22:11,150 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-07 00:22:12,770 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-07 00:22:41,401 - __main__ - INFO - Training process finished.
