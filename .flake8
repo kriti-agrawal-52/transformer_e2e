@@ -14,6 +14,10 @@ ignore =
     E501,
     E203,
     W503
+
+# Ignore known conflicts with Black formatting
+# E203: Whitespace before ':' (e.g., slices) – Black prefers space
+# W503: Line break before binary operator – Black enforces this style
 # ignore the above error codes globally
 max-line-length = 120
 max-complexity = 10  

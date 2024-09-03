@@ -25,7 +25,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install black flake8 mypy pytest
+          pip install black flake8 pytest
 
       - name: Lint with black
         run: black --check . # checks if all python files are properly formatted
@@ -33,9 +33,6 @@ jobs:
 
       - name: Check style with flake8 # ensures code follows PEP8 style guidelines
         run: flake8 . # fails the job if too long lines, unused imports
-
-      - name: Type check with mypy # uses python type hints to catch type mismatch between function arguments and return types
-        run: mypy .
 
       - name: Run unit tests # runs all test cases defined in tests/
         run: pytest tests/

@@ -2,9 +2,10 @@ from types import SimpleNamespace
 import yaml
 import torch
 import logging
-import os 
+import os
 
 logger = logging.getLogger(__name__)
+
 
 def load_config(config_path: str = "generate_config.yml", as_namespace: bool = True):
     """
@@ -31,6 +32,7 @@ def load_config(config_path: str = "generate_config.yml", as_namespace: bool = T
         return dict_to_namespace(config_dict)
 
     return config_dict
+
 
 def dict_to_namespace(d):
     """
