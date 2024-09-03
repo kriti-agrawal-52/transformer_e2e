@@ -4,13 +4,9 @@ import argparse
 import logging
 import sys
 from transformers import AutoTokenizer
-import wandb
 import os
 from model import TransformerModel
 from utils_generate_config import load_config
-
-# Import the patched model with generate method
-import model_generate  # This will add the generate method to TransformerModel
 
 logger = logging.getLogger(__name__)
 
