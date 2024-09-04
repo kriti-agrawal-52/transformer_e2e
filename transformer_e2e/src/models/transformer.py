@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import logging
 import torch.nn.functional as F
+import gc
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,15 @@ class MultiHeadAttention(nn.Module):
     attention with causal masking (for decoder-style models), and a final
     output projection. Causal masking ensures that a token can only attend to
     previous tokens in the sequence.
+    
+    Resource Management Note:
+    ----------------------------------------------------------------------
+    The tril buffer (lower triangular matrix for causal masking) is registered as a buffer
+    in the model. In long-running or repeated training/inference scenarios, or when models
+    are created and destroyed dynamically, it is important to explicitly free such buffers
+    to avoid memory leaks, especially on GPU. We provide a cleanup() method to delete the
+    buffer and force garbage collection.
+    ----------------------------------------------------------------------
     """
 
     def __init__(self, embed_dim, num_heads, context_window, dropout_rate=0.1):
@@ -52,7 +62,6 @@ class MultiHeadAttention(nn.Module):
             dropout_rate
         )  # Dropout after softmax attention weights
         self.resid_dropout = nn.Dropout(dropout_rate)
-        print(f"attention layer, dropout rate: {dropout_rate}\n")
 
     def forward(self, x):
         """Performs forward pass for multi-head attention"""
@@ -115,6 +124,16 @@ class MultiHeadAttention(nn.Module):
 
         # Final output projection
         return self.resid_dropout(self.out_proj(out))  # Apply dropout here
+
+    def cleanup(self):
+        """
+        Explicitly deletes the tril buffer to free memory. This is important in scenarios
+        where models are created and destroyed dynamically, or when using large context windows.
+        """
+        if hasattr(self, 'tril'):
+            del self.tril
+        gc.collect()
+        torch.cuda.empty_cache()
 
 
 class TransformerBlock(nn.Module):
@@ -186,6 +205,15 @@ class TransformerModel(nn.Module):
     It includes methods for the forward pass, evaluation, training, and
     text generation. The training loop incorporates checkpointing and
     early stopping.
+    
+    Resource Management Note:
+    ----------------------------------------------------------------------
+    Large models and their parameters, as well as intermediate tensors, can consume significant
+    memory, especially on GPU. To avoid memory leaks and ensure resources are freed when the
+    model is no longer needed, we provide a cleanup() method that recursively calls cleanup on
+    all submodules (including attention blocks) and deletes model parameters. This is especially
+    important in training loops or services that instantiate/destroy models repeatedly.
+    ----------------------------------------------------------------------
     """
 
     def __init__(
@@ -299,17 +327,48 @@ class TransformerModel(nn.Module):
         for block in self.transformer_blocks:
             x = block(x)
 
-        # Final normalization and projection to logits
+        # Final normalization before the projection head
         x = self.ln_f(x)
-        logits = self.proj(x)  # shape: (B, T, vocab_size)
-
-        # Calculate loss if targets are provided
-        loss = None
+        
+        # Calculate logits and loss based on whether we are training or generating
         if targets is not None:
-            # Ensure targets are also on the same device as logits
+            # Training path: compute logits for the entire sequence for loss calculation
+            logits = self.proj(x)
+            
+            # Ensure targets are on the same device as logits for loss calculation
             targets = targets.to(logits.device)
-            B_l, T_l, C_l = logits.shape  # C_l is vocab_size
-            loss = F.cross_entropy(logits.view(B_l * T_l, C_l), targets.view(B_l * T_l))
-            # we do not have to softmax on logits to get values because cross_entropy function take care of that.
-            # we are reshaping logits and targets due to requirements of cross_entropy function
+            
+            B, T, C = logits.shape  # C is vocab_size
+
+            # Reshape for cross_entropy, which expects 2D logits and 1D targets.
+            # We don't need to softmax the logits because F.cross_entropy does it internally.
+            loss = F.cross_entropy(logits.view(B * T, C), targets.view(B * T))
+        else:
+            # Generation path (inference):
+            # For efficiency, only compute logits for the last token in the sequence.
+            # This avoids a large, wasteful matrix multiplication on the entire context window.
+            logits = self.proj(x[:, [-1], :])  # Shape: (B, 1, C)
+            
+            # Squeeze the output to (B, C) to make it easier for the generation loop to handle.
+            logits = logits[:, -1, :]  # Shape: (B, C)
+            loss = None
+
         return logits, loss
+
+    def cleanup(self):
+        """
+        Explicitly frees all model parameters, buffers, and submodule resources.
+        This should be called when the model is no longer needed to avoid memory leaks.
+        """
+        # Cleanup all transformer blocks (which will cleanup their attention modules)
+        if hasattr(self, 'transformer_blocks'):
+            for block in self.transformer_blocks:
+                if hasattr(block, 'attn') and hasattr(block.attn, 'cleanup'):
+                    block.attn.cleanup()
+        # Delete all parameters and buffers
+        for name, param in list(self.named_parameters()):
+            del param
+        for name, buf in list(self.named_buffers()):
+            del buf
+        gc.collect()
+        torch.cuda.empty_cache()

@@ -38,6 +38,7 @@ DROPOUT_RATE: 0.1
 FINAL_DROPOUT_MULTIPLIER: 4
 MAX_DROPOUT_VAL: 0.5
 EARLY_STOPPING_PATIENCE: 25 # 20
+MIN_SUCCESSFUL_VAL_BATCH_RATIO: 0.5 # 0.5 means that we need at least 50% of the validation batches to be successful to continue training
 
 # --- TRAINING HYPERPARAMETERS GRID SEARCH FOR HYPERPARAMETER SEARCH ---
 HP_SEARCH_LRS: [1e-3, 5e-4, 1e-4]
@@ -60,10 +61,6 @@ MODEL_CHECKPOINTS_DIR: "model_checkpoints/" # Path for saving model checkpoints
 LOG_FILE: "transformer_epic_model.log" # file to log runs on the codebase
 LOSS_PLOT_DIRECTORY: "train_eval_plots/" # directory for loss plots
 
-# --- TEXT GENERATION PARAMETERS ---
-MAX_TOKENS_AHEAD: 100
-TEMPERATURE: 0.7
-TOP_K: 40
-
 # --- TRAINING MANAGEMENT ---
 DELETE_LATEST_CHECKPOINT_ON_COMPLETION: True # Set to True to enable deletion, False to keep
+

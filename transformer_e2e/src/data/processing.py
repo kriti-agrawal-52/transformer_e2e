@@ -26,6 +26,10 @@ class PreprocessingTraining:
         self.tokenizer = tokenizer
         self.batch_size = batch_size
         self.time_steps = time_steps
+        
+        # Check for empty text input
+        if not self.text or not self.text.strip():
+            raise ValueError("Input text is empty. Please provide non-empty text data.")
 
         logger.info("Tokenizing the entire dataset..")
         self.all_token_ids = self.tokenizer.encode(
@@ -36,7 +40,16 @@ class PreprocessingTraining:
         self.vocab_size = (
             self.tokenizer.vocab_size
         )  # vocab size is an attribute of tokenizer object
-
+        
+        # Check if dataset is large enough for batching
+        min_required_tokens = (self.time_steps + 1) * self.batch_size
+        if len(self.all_token_ids) < min_required_tokens:
+            raise ValueError(
+                f"Dataset is too small for the requested batch_size={self.batch_size} and time_steps={self.time_steps}. "
+                f"Need at least {min_required_tokens} tokens, but got {len(self.all_token_ids)}. "
+                "Consider reducing batch_size or time_steps, or using a larger dataset."
+            )
+        
         # split dataset into train, test, validation
         self._split_tokenized_data()  # this function will always be used within the class, hence preceding function name with _
 

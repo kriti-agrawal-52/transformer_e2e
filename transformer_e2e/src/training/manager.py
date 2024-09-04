@@ -5,6 +5,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import wandb
 import os
 import logging
+import threading
 
 from src.models.transformer import TransformerModel
 from src.data.processing import PreprocessingTraining
@@ -56,10 +57,64 @@ def log_artifact(checkpoint_path, run_id, run_params, cfg):
         model_artifact.add_file(checkpoint_path)
         wandb.log_artifact(model_artifact, aliases=["best", run_id])
         logger.info(f"Logged artifact: {artifact_name}")
-        return True  # success
+        return model_artifact
     except Exception as e:
         logger.error(f"Failed to log artifact: {e}", exc_info=True)
-        return False  # failure 
+        return None  # failure 
+
+
+"""
+----------------------------------------------------------------------------------
+Why do we use threading for artifact upload timeout?
+----------------------------------------------------------------------------------
+The W&B artifact.wait() method is a blocking call: it will pause the program until
+ the upload is finished, regardless of how long it takes. There is no built-in timeout.
+
+To prevent our training process from hanging indefinitely (e.g., due to network issues
+or W&B service problems), we run artifact.wait() in a separate thread. This allows the
+main program to wait (join) on that thread for a fixed amount of time (e.g., 300 seconds).
+
+- If the thread finishes within the timeout, the upload is considered successful and we
+  can safely clean up local checkpoints.
+- If the thread is still running after the timeout, it means the upload is taking too long
+  (possibly stuck). We log an error and do NOT delete local checkpoints, to avoid data loss.
+
+Note: We do NOT create a separate thread for the upload itself (W&B handles uploads in the
+background). The thread is only for waiting on the blocking wait() call. We do not forcibly
+kill the thread if it times out (Python does not support safe thread termination), but we
+stop waiting and proceed with error handling.
+
+This approach ensures our pipeline is robust and never hangs forever on artifact upload.
+----------------------------------------------------------------------------------
+"""
+def wait_for_artifact_upload(artifact, timeout_sec=300):
+    """
+    Waits for the W&B artifact upload to complete, with a timeout.
+    Args:
+        artifact: The W&B artifact object whose upload we want to wait for.
+        timeout_sec: Maximum number of seconds to wait before timing out (default: 300).
+    Returns:
+        True if upload finished successfully within the timeout, False if timed out or error occurred.
+    Why:
+        W&B's artifact.wait() is a blocking call and does not support a timeout. In distributed or unreliable network scenarios,
+        this can cause the process to hang indefinitely. We use a thread to enforce a timeout for robustness.
+    """
+    result = {"finished": False}
+
+    def _wait():
+        try:
+            artifact.wait()
+            result["finished"] = True
+        except Exception as e:
+            logger.error(f"Exception during artifact.wait(): {e}", exc_info=True)
+
+    t = threading.Thread(target=_wait)
+    t.start()
+    t.join(timeout=timeout_sec)
+    if t.is_alive():
+        logger.error(f"Artifact upload did not finish within {timeout_sec} seconds. Timeout reached.")
+        return False
+    return result["finished"]
 
 
 class TrainingManager:
@@ -216,7 +271,7 @@ class TrainingManager:
                     lr=self.params["learning_rate"],
                 )
 
-                # Halve the LR (factor=0.5) if val_loss doesn’t improve by >min_delta for 5 validation checks (mode="min" means lower loss is better)
+                # Halve the LR (factor=0.5) if val_loss doesn't improve by >min_delta for 5 validation checks (mode="min" means lower loss is better)
 
                 scheduler = ReduceLROnPlateau(
                     optimizer,
@@ -238,6 +293,7 @@ class TrainingManager:
                     opt_state,
                     best_loss,
                 )
+                was_completed = True
 
             # --- POST-TRAINING LOGIC (APPLIES TO NEWLY COMPLETED AND RESUMED-COMPLETED RUNS) ---
             if not os.path.exists(final_best_model_path):
@@ -252,13 +308,23 @@ class TrainingManager:
             if self.is_single_run and was_completed: # Run eval if it was completed (either now or previously)
                 run_post_training_eval(model, prep, final_best_model_path, self.cfg, self.device)
                 
-            artifact_logged = False
+            logged_artifact = None
             # Log artifact if it's a single run, or if ALWAYS_LOG_ARTIFACTS is true, AND the run was completed
             if (self.is_single_run or self.cfg.ALWAYS_LOG_ARTIFACTS) and was_completed:
-                artifact_logged = log_artifact(final_best_model_path, self.run_id, self.params, self.cfg)
+                logged_artifact = log_artifact(final_best_model_path, self.run_id, self.params, self.cfg)
 
-            if artifact_logged:  # If artifact was logged successfully on wandb, we can clear up local checkpoints
-                self._cleanup_checkpoints()
+            if logged_artifact:  # If artifact was logged successfully on wandb, we can clear up local checkpoints
+                try:
+                    logger.info("Waiting for artifact upload to complete (timeout: 300s)...")
+                    # Wait for artifact upload with a timeout to avoid indefinite hanging
+                    success = wait_for_artifact_upload(logged_artifact, timeout_sec=300)
+                    if success:
+                        logger.info("Artifact upload finished.")
+                        self._cleanup_checkpoints()
+                    else:
+                        logger.error("Artifact upload timed out or failed. Local checkpoints will NOT be deleted. Please check your network or W&B status.")
+                except Exception as e:
+                    logger.error(f"An error occurred during artifact cleanup: {e}", exc_info=True)
 
         except Exception as e:
             logger.critical(f"Critical error in run {self.run_id}: {e}", exc_info=True)

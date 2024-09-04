@@ -80,3 +80,5 @@ urllib3==2.4.0
 wandb==0.19.11
 xxhash==3.5.0
 yarl==1.20.0
+python-dotenv
+flake8-bugbear

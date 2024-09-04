@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from model import TransformerModel
+from .transformer import TransformerModel
 
 
 # Add the generation method to the existing TransformerModel class
@@ -41,7 +41,7 @@ def generate(self, input_ids, max_tokens_ahead, temperature, top_k, device):
             logits, _ = self(
                 cond
             )  # forward the cond vector through the entire model, and we get logits and loss, for generation loss
-            last = logits[:, -1, :]  # Focus on the last token's logits
+            last = logits  # Logits are already for the last token, shape (B, C)
 
             # Apply temperature scaling
             # temperature=0 can lead to issues with multinomial if not handled
@@ -82,5 +82,6 @@ def generate(self, input_ids, max_tokens_ahead, temperature, top_k, device):
     return input_ids
 
 
-# Monkey patch the generate method to TransformerModel
-TransformerModel.generate = generate
+# Monkey patch the generate method to TransformerModel if not already present
+if not hasattr(TransformerModel, 'generate'):
+    TransformerModel.generate = generate

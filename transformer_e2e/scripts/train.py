@@ -3,6 +3,7 @@ import argparse
 import logging
 import wandb
 import sys
+from dotenv import load_dotenv
 
 from src.utils.config_loader import load_config
 from src.data.processing import setup_data_and_tokenizer
@@ -10,6 +11,9 @@ from src.training.manager import run_single_training, run_hyperparameter_search
 
 
 def main():
+    """Main function to run the training script."""
+    # Load environment variables from .env file
+    load_dotenv()
 
     parser = argparse.ArgumentParser(description="Train a Transformer Language Model.")
     parser.add_argument(
