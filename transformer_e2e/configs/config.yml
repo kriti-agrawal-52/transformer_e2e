@@ -3,7 +3,7 @@
 # --- CONTROL FLAGS ---
 
 SHOULD_TRAIN_SINGLE_RUN: True # Set to true to run the single run (where we have 1 set of hyperparameters)
-SHOULD_HYPERPARAMETER_SEARCH: True # Set to true for hyperparameter searching
+SHOULD_HYPERPARAMETER_SEARCH: False # Set to true for hyperparameter searching
 ALWAYS_LOG_ARTIFACTS: True # Flag for if we want to save our model as wandb artefact
 
 # --- Environment ---
@@ -17,33 +17,33 @@ TOKENIZER_NAME: "gpt2"
 # --- Data Loading Configuration ---
 # Set the maximum number of characters to use for training
 # This limits the dataset size for faster iteration, especially for tuning.
-RAW_TEXT_LIMIT: 50000000 # 50 Million characters
+RAW_TEXT_LIMIT: 10000000 # 50 Million characters
 
 RUN_MODE: "single" # single or grid
 
 # --- TRAINING HYPERPARAMETERS FOR SINGLE RUN TRAINING---
-BATCH_SIZE: 16
-CONTEXT_WINDOW: 124
-CHANNEL_DIM: 384 # 512
-NUM_HEADS: 12 # 16
-NUM_LAYERS: 8 # 12
+BATCH_SIZE: 8
+CONTEXT_WINDOW: 64
+CHANNEL_DIM: 128
+NUM_HEADS: 4
+NUM_LAYERS: 4
 LEARNING_RATE: 3e-4 # 5e-4
-TRAINING_STEPS: 20000
+TRAINING_STEPS: 10000
 
 MIN_DELTA: 0.001 # we should not make this value too small because we want to have meaningful improvement in our validation loss
-EVAL_ITERS_VAL: 20 # for calculating evaluation loss, we randomly take EVAL_ITERS_VAL batches of validation set, and take their average loss.
-EVAL_ITERS_TEST: 50
-VALIDATION_CHECK_EVERY: 100
+EVAL_ITERS_VAL: 10 # for calculating evaluation loss, we randomly take EVAL_ITERS_VAL batches of validation set, and take their average loss.
+EVAL_ITERS_TEST: 20
+VALIDATION_CHECK_EVERY: 50
 DROPOUT_RATE: 0.1
 FINAL_DROPOUT_MULTIPLIER: 4
 MAX_DROPOUT_VAL: 0.5
-EARLY_STOPPING_PATIENCE: 25 # 20
+EARLY_STOPPING_PATIENCE: 10 # 20
 MIN_SUCCESSFUL_VAL_BATCH_RATIO: 0.5 # 0.5 means that we need at least 50% of the validation batches to be successful to continue training
 
 # --- TRAINING HYPERPARAMETERS GRID SEARCH FOR HYPERPARAMETER SEARCH ---
-HP_SEARCH_LRS: [1e-3, 5e-4, 1e-4]
-HP_SEARCH_BATCH_SIZES: [8, 16, 32]
-HP_SEARCH_CONTEXT_WINDOWS: [32, 64, 128]
+HP_SEARCH_LRS: [3e-4, 1e-4]
+HP_SEARCH_BATCH_SIZES: [8, 16]
+HP_SEARCH_CONTEXT_WINDOWS: [32, 64]
 
 # FIXED HYPERPARAMETERS FOR HYPERPARAMETER SEARCH
 HP_SEARCH_STEPS: 5000
