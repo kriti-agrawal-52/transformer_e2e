@@ -83,5 +83,5 @@ def generate(self, input_ids, max_tokens_ahead, temperature, top_k, device):
 
 
 # Monkey patch the generate method to TransformerModel if not already present
-if not hasattr(TransformerModel, 'generate'):
+if not hasattr(TransformerModel, "generate"):
     TransformerModel.generate = generate

@@ -18,7 +18,7 @@ class MultiHeadAttention(nn.Module):
     attention with causal masking (for decoder-style models), and a final
     output projection. Causal masking ensures that a token can only attend to
     previous tokens in the sequence.
-    
+
     Resource Management Note:
     ----------------------------------------------------------------------
     The tril buffer (lower triangular matrix for causal masking) is registered as a buffer
@@ -130,7 +130,7 @@ class MultiHeadAttention(nn.Module):
         Explicitly deletes the tril buffer to free memory. This is important in scenarios
         where models are created and destroyed dynamically, or when using large context windows.
         """
-        if hasattr(self, 'tril'):
+        if hasattr(self, "tril"):
             del self.tril
         gc.collect()
         torch.cuda.empty_cache()
@@ -205,7 +205,7 @@ class TransformerModel(nn.Module):
     It includes methods for the forward pass, evaluation, training, and
     text generation. The training loop incorporates checkpointing and
     early stopping.
-    
+
     Resource Management Note:
     ----------------------------------------------------------------------
     Large models and their parameters, as well as intermediate tensors, can consume significant
@@ -329,15 +329,15 @@ class TransformerModel(nn.Module):
 
         # Final normalization before the projection head
         x = self.ln_f(x)
-        
+
         # Calculate logits and loss based on whether we are training or generating
         if targets is not None:
             # Training path: compute logits for the entire sequence for loss calculation
             logits = self.proj(x)
-            
+
             # Ensure targets are on the same device as logits for loss calculation
             targets = targets.to(logits.device)
-            
+
             B, T, C = logits.shape  # C is vocab_size
 
             # Reshape for cross_entropy, which expects 2D logits and 1D targets.
@@ -348,7 +348,7 @@ class TransformerModel(nn.Module):
             # For efficiency, only compute logits for the last token in the sequence.
             # This avoids a large, wasteful matrix multiplication on the entire context window.
             logits = self.proj(x[:, [-1], :])  # Shape: (B, 1, C)
-            
+
             # Squeeze the output to (B, C) to make it easier for the generation loop to handle.
             logits = logits[:, -1, :]  # Shape: (B, C)
             loss = None
@@ -361,9 +361,9 @@ class TransformerModel(nn.Module):
         This should be called when the model is no longer needed to avoid memory leaks.
         """
         # Cleanup all transformer blocks (which will cleanup their attention modules)
-        if hasattr(self, 'transformer_blocks'):
+        if hasattr(self, "transformer_blocks"):
             for block in self.transformer_blocks:
-                if hasattr(block, 'attn') and hasattr(block.attn, 'cleanup'):
+                if hasattr(block, "attn") and hasattr(block.attn, "cleanup"):
                     block.attn.cleanup()
         # Delete all parameters and buffers
         for name, param in list(self.named_parameters()):

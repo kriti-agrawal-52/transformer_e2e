@@ -60,7 +60,7 @@ def log_artifact(checkpoint_path, run_id, run_params, cfg):
         return model_artifact
     except Exception as e:
         logger.error(f"Failed to log artifact: {e}", exc_info=True)
-        return None  # failure 
+        return None  # failure
 
 
 """
@@ -87,6 +87,8 @@ stop waiting and proceed with error handling.
 This approach ensures our pipeline is robust and never hangs forever on artifact upload.
 ----------------------------------------------------------------------------------
 """
+
+
 def wait_for_artifact_upload(artifact, timeout_sec=300):
     """
     Waits for the W&B artifact upload to complete, with a timeout.
@@ -112,7 +114,9 @@ def wait_for_artifact_upload(artifact, timeout_sec=300):
     t.start()
     t.join(timeout=timeout_sec)
     if t.is_alive():
-        logger.error(f"Artifact upload did not finish within {timeout_sec} seconds. Timeout reached.")
+        logger.error(
+            f"Artifact upload did not finish within {timeout_sec} seconds. Timeout reached."
+        )
         return False
     return result["finished"]
 
@@ -139,7 +143,7 @@ class TrainingManager:
         self.best_ckpt_path = os.path.join(
             self.cfg.MODEL_CHECKPOINTS_DIR, f"{base_filename}_best.pt"
         )
-    
+
     def _cleanup_checkpoints(self):
         """Removes local checkpoint files after successful upload."""
         logger.info("Cleaning up local checkpoint files...")
@@ -182,40 +186,48 @@ class TrainingManager:
             start_step, opt_state, best_loss, was_completed = load_checkpoint(
                 model, self.latest_ckpt_path, self.device
             )
-            
+
             if was_completed:  # if the run was explicitly marked as completed
                 logger.warning(
                     f"Run {self.run_id} was previously completed (either finished all steps or early stopped). Skipping."
                 )
-                print(
-                    f"Run {self.run_id} was previously completed. Skipping training."
-                )
+                print(f"Run {self.run_id} was previously completed. Skipping training.")
                 # We still need to run post-training eval and artifact logging if they haven't been done
                 # But we will skip the training part
                 # Ensure the model is loaded from the best checkpoint if it was completed
                 if os.path.exists(self.best_ckpt_path):
-                    best_checkpoint = torch.load(self.best_ckpt_path, map_location=self.device)
+                    best_checkpoint = torch.load(
+                        self.best_ckpt_path, map_location=self.device
+                    )
                     model.load_state_dict(best_checkpoint["model_state_dict"])
-                    final_best_model_path = self.best_ckpt_path # Set this explicitly
+                    final_best_model_path = self.best_ckpt_path  # Set this explicitly
                 else:
-                    logger.warning(f"Best model checkpoint {self.best_ckpt_path} not found for a completed run.")
+                    logger.warning(
+                        f"Best model checkpoint {self.best_ckpt_path} not found for a completed run."
+                    )
                     # Handle case where best checkpoint might be missing for a completed run (unlikely if completion logic is sound)
                     if wandb.run:
                         wandb.finish()
-                    return None # Exit if no best model to work with
-            elif start_step > self.params["steps"]:  # This handles cases where a run was partially completed, but now the desired steps are less than what was already done.
+                    return None  # Exit if no best model to work with
+            elif (
+                start_step > self.params["steps"]
+            ):  # This handles cases where a run was partially completed, but now the desired steps are less than what was already done.
                 logger.warning(
                     f"Run {self.run_id} already completed {start_step - 1} steps, which is more than target {self.params['steps']}. Skipping training."
                 )
                 print(f"Run {self.run_id} already completed. Skipping training.")
-                was_completed = True # Treat as completed for subsequent logic
+                was_completed = True  # Treat as completed for subsequent logic
                 # Ensure the model is loaded from the best checkpoint if it effectively completed
                 if os.path.exists(self.best_ckpt_path):
-                    best_checkpoint = torch.load(self.best_ckpt_path, map_location=self.device)
+                    best_checkpoint = torch.load(
+                        self.best_ckpt_path, map_location=self.device
+                    )
                     model.load_state_dict(best_checkpoint["model_state_dict"])
                     final_best_model_path = self.best_ckpt_path
                 else:
-                    logger.warning(f"Best model checkpoint {self.best_ckpt_path} not found for a run that exceeded target steps.")
+                    logger.warning(
+                        f"Best model checkpoint {self.best_ckpt_path} not found for a run that exceeded target steps."
+                    )
                     if wandb.run:
                         wandb.finish()
                     return None
@@ -247,7 +259,9 @@ class TrainingManager:
                 """
                 decay_params, no_decay_params = [], []
                 for name, param in model.named_parameters():
-                    if not param.requires_grad:  # frozen parameters which wont get trained
+                    if (
+                        not param.requires_grad
+                    ):  # frozen parameters which wont get trained
                         continue
 
                     # Anything that is purely multiplicative-scaling or a bias stays out
@@ -297,34 +311,51 @@ class TrainingManager:
 
             # --- POST-TRAINING LOGIC (APPLIES TO NEWLY COMPLETED AND RESUMED-COMPLETED RUNS) ---
             if not os.path.exists(final_best_model_path):
-                 logger.warning(f"Best model path '{final_best_model_path}' not found. Skipping post-training steps.")
-                 if wandb.run: # Finish wandb if we are exiting early due to missing model
-                     wandb.finish()
-                 return None # Exit if there is no best model to work with
+                logger.warning(
+                    f"Best model path '{final_best_model_path}' not found. Skipping post-training steps."
+                )
+                if (
+                    wandb.run
+                ):  # Finish wandb if we are exiting early due to missing model
+                    wandb.finish()
+                return None  # Exit if there is no best model to work with
 
-            
             # Only run post-training eval if it's a single run and the training was completed successfully
             # This prevents re-running eval for every hyperparameter search run if it was already evaluated
-            if self.is_single_run and was_completed: # Run eval if it was completed (either now or previously)
-                run_post_training_eval(model, prep, final_best_model_path, self.cfg, self.device)
-                
+            if (
+                self.is_single_run and was_completed
+            ):  # Run eval if it was completed (either now or previously)
+                run_post_training_eval(
+                    model, prep, final_best_model_path, self.cfg, self.device
+                )
+
             logged_artifact = None
             # Log artifact if it's a single run, or if ALWAYS_LOG_ARTIFACTS is true, AND the run was completed
             if (self.is_single_run or self.cfg.ALWAYS_LOG_ARTIFACTS) and was_completed:
-                logged_artifact = log_artifact(final_best_model_path, self.run_id, self.params, self.cfg)
+                logged_artifact = log_artifact(
+                    final_best_model_path, self.run_id, self.params, self.cfg
+                )
 
-            if logged_artifact:  # If artifact was logged successfully on wandb, we can clear up local checkpoints
+            if (
+                logged_artifact
+            ):  # If artifact was logged successfully on wandb, we can clear up local checkpoints
                 try:
-                    logger.info("Waiting for artifact upload to complete (timeout: 300s)...")
+                    logger.info(
+                        "Waiting for artifact upload to complete (timeout: 300s)..."
+                    )
                     # Wait for artifact upload with a timeout to avoid indefinite hanging
                     success = wait_for_artifact_upload(logged_artifact, timeout_sec=300)
                     if success:
                         logger.info("Artifact upload finished.")
                         self._cleanup_checkpoints()
                     else:
-                        logger.error("Artifact upload timed out or failed. Local checkpoints will NOT be deleted. Please check your network or W&B status.")
+                        logger.error(
+                            "Artifact upload timed out or failed. Local checkpoints will NOT be deleted. Please check your network or W&B status."
+                        )
                 except Exception as e:
-                    logger.error(f"An error occurred during artifact cleanup: {e}", exc_info=True)
+                    logger.error(
+                        f"An error occurred during artifact cleanup: {e}", exc_info=True
+                    )
 
         except Exception as e:
             logger.critical(f"Critical error in run {self.run_id}: {e}", exc_info=True)

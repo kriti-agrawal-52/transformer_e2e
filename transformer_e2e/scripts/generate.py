@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
+
 def validate_generation_params(cfg):
     """
     Validates generation parameters from config. Raises ValueError if invalid.
@@ -27,9 +28,11 @@ def validate_generation_params(cfg):
     if errors:
         raise ValueError("Invalid generation parameters:\n" + "\n".join(errors))
 
+
 # load configurations
 # (moved into main for better error handling)
 # generate_cfg = load_config("configs/generate_config.yml")
+
 
 def setup_logging(cfg):
     logging.basicConfig(
@@ -52,7 +55,9 @@ def get_model_config_from_wandb(run_id, project_name):
     Fetches model configuration from a W&B run, with robust error handling for
     connection, project, and run ID issues.
     """
-    logger.info(f"Attempting to fetch config for run '{run_id}' from W&B project '{project_name}'...")
+    logger.info(
+        f"Attempting to fetch config for run '{run_id}' from W&B project '{project_name}'..."
+    )
     try:
         # This is the first point of failure if the API key is wrong or there's no connection.
         api = wandb.Api()
@@ -67,7 +72,9 @@ def get_model_config_from_wandb(run_id, project_name):
                 "Please verify the run ID and project name."
             )
             return None
-        logger.info(f"Successfully fetched config for run '{run.name}' ({run.id}) from W&B.")
+        logger.info(
+            f"Successfully fetched config for run '{run.name}' ({run.id}) from W&B."
+        )
         return run.config  # Return as plain dict
     except wandb.errors.CommError as e:
         logger.error(
@@ -80,7 +87,10 @@ def get_model_config_from_wandb(run_id, project_name):
 
     except Exception as e:
         # Catch any other unexpected errors during the process.
-        logger.error(f"An unexpected error occurred while fetching config from W&B for run '{run_id}': {e}", exc_info=True)
+        logger.error(
+            f"An unexpected error occurred while fetching config from W&B for run '{run_id}': {e}",
+            exc_info=True,
+        )
         return None
 
 
@@ -91,7 +101,9 @@ def main():
     """
     # Load environment variables from .env file
     load_dotenv()
-    parser = argparse.ArgumentParser(description="Generate text from a Transformer model.")
+    parser = argparse.ArgumentParser(
+        description="Generate text from a Transformer model."
+    )
     parser.add_argument(
         "--gen_config",
         type=str,
@@ -113,18 +125,24 @@ def main():
 
         # Checking if checkpoint exists
         if not os.path.exists(generate_cfg.CHECKPOINT_PATH):
-            raise FileNotFoundError(f"Checkpoint file not found: {generate_cfg.CHECKPOINT_PATH}")
+            raise FileNotFoundError(
+                f"Checkpoint file not found: {generate_cfg.CHECKPOINT_PATH}"
+            )
 
         # Load local training config to get W&B project name
         local_cfg_dict = load_config(generate_cfg.MAIN_CONFIG_PATH)
         wandb_project = local_cfg_dict.get("WANDB_PROJECT")
         if not wandb_project:
-            raise RuntimeError(f"WANDB_PROJECT not found in local config file: {generate_cfg.MAIN_CONFIG_PATH}")
+            raise RuntimeError(
+                f"WANDB_PROJECT not found in local config file: {generate_cfg.MAIN_CONFIG_PATH}"
+            )
 
         # Get model hyperparameters from the specified W&B run
         model_config = get_model_config_from_wandb(generate_cfg.RUN_ID, wandb_project)
         if model_config is None:
-            raise RuntimeError("Could not retrieve model configuration from W&B. Exiting.")
+            raise RuntimeError(
+                "Could not retrieve model configuration from W&B. Exiting."
+            )
 
         tokenizer_name = model_config.get(
             "tokenizer_name", local_cfg_dict.get("TOKENIZER_NAME", "gpt2")
@@ -157,7 +175,9 @@ def main():
             )
             model.load_state_dict(checkpoint["model_state_dict"])
         except FileNotFoundError:
-            logger.error(f"Checkpoint file not found at: {generate_cfg.CHECKPOINT_PATH}")
+            logger.error(
+                f"Checkpoint file not found at: {generate_cfg.CHECKPOINT_PATH}"
+            )
             raise
         except Exception as e:
             logger.error(f"Failed to load model checkpoint: {e}", exc_info=True)
@@ -168,7 +188,9 @@ def main():
         logger.info("Model loaded and moved to device.")
 
         # Encode the prompt
-        input_ids = torch.tensor([tokenizer.encode(generate_cfg.PROMPT)], dtype=torch.long)
+        input_ids = torch.tensor(
+            [tokenizer.encode(generate_cfg.PROMPT)], dtype=torch.long
+        )
 
         # Generate text
         logger.info("Generating text...")

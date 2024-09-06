@@ -10,7 +10,7 @@ from src.utils.exceptions import ValidationLossComputationError
 logger = logging.getLogger(__name__)
 
 
-def save_checkpoint(step, model, optimizer, best_loss, path, completed = False):
+def save_checkpoint(step, model, optimizer, best_loss, path, completed=False):
     """Saves a checkpoint containing model/optimizer states, step and training completion status"""
     torch.save(
         {
@@ -40,11 +40,11 @@ def load_checkpoint(model, checkpoint_path, device):
             opt_state = checkpoint["optimizer_state_dict"]
             start_step = checkpoint["step"] + 1
             best_loss = checkpoint.get("best_val_loss", float("inf"))
-            was_completed = checkpoint.get("completed", False) # Load completion status
+            was_completed = checkpoint.get("completed", False)  # Load completion status
             logger.info(
                 f"Resuming from step {start_step} "
                 f"with best_val_loss {best_loss:.4f}"
-                f"{' (Previously completed)' if was_completed else ''}" # Log if completed
+                f"{' (Previously completed)' if was_completed else ''}"  # Log if completed
             )
         except Exception as e:
             logger.error(
@@ -171,6 +171,7 @@ def evaluate_validation_loss(
 
     return sum(losses) / successful_batches
 
+
 def train_loop(
     model,
     prep_obj,
@@ -223,9 +224,11 @@ def train_loop(
     val_loss_dict = {}
     model.train()
 
-    training_completed_successfully = False  # Flag to track if training finished without interruption
+    training_completed_successfully = (
+        False  # Flag to track if training finished without interruption
+    )
     last_step = start_step - 1
-    
+
     # Single run training loop
     for step in range(
         start_step, steps + 1
@@ -257,9 +260,12 @@ def train_loop(
             if is_val_step or is_last_step:
                 try:
                     val_loss = evaluate_validation_loss(
-                        model, prep_obj, device, split="validation",
+                        model,
+                        prep_obj,
+                        device,
+                        split="validation",
                         eval_iters=cfg.EVAL_ITERS_VAL,
-                        min_successful_ratio=cfg.MIN_SUCCESSFUL_VAL_BATCH_RATIO
+                        min_successful_ratio=cfg.MIN_SUCCESSFUL_VAL_BATCH_RATIO,
                     )
                 except ValidationLossComputationError as e:
                     logger.critical(f"Validation failed: {e}")
@@ -285,7 +291,12 @@ def train_loop(
                 # will be created after the loop finishes, making this one redundant.
                 if not is_last_step:
                     save_checkpoint(
-                        step, model, optimizer, best_val_loss, latest_checkpoint_path, completed = False
+                        step,
+                        model,
+                        optimizer,
+                        best_val_loss,
+                        latest_checkpoint_path,
+                        completed=False,
                     )
 
                 if val_loss < best_val_loss - cfg.MIN_DELTA:
@@ -294,7 +305,12 @@ def train_loop(
                     # If the model has improved, we save its state as the new 'best' checkpoint.
                     # This checkpoint will be marked as 'completed' later if the training run finishes successfully.
                     save_checkpoint(
-                        step, model, optimizer, best_val_loss, best_checkpoint_path, completed = False
+                        step,
+                        model,
+                        optimizer,
+                        best_val_loss,
+                        best_checkpoint_path,
+                        completed=False,
                     )
                     logger.info(f" New Best Model (Val: {best_val_loss:.4f})")
                     print(" New Best Model; Checkpoint saved.")
@@ -318,7 +334,9 @@ def train_loop(
                 if stale_checks >= patience:
                     logger.warning(">>> Early stopping triggered.")
                     print(">>> Early stopping triggered.")
-                    training_completed_successfully = True # Mark as completed on early stop
+                    training_completed_successfully = (
+                        True  # Mark as completed on early stop
+                    )
                     break  # Exit the loop
         except Exception as e:
             logger.error(
@@ -329,13 +347,22 @@ def train_loop(
             break  # Exit loop on error
     else:  # This block runs only if the loop completes without a 'break'
         training_completed_successfully = True
-        
+
     if training_completed_successfully:
-        logger.info(f"Training completed at step {last_step}. Marking final checkpoints as completed.")
-        
+        logger.info(
+            f"Training completed at step {last_step}. Marking final checkpoints as completed."
+        )
+
         # After a successful training run, we save the final state to the 'latest' checkpoint
         # and explicitly mark it as 'completed'. This signifies that the run finished properly.
-        save_checkpoint(last_step, model, optimizer, best_val_loss, latest_checkpoint_path, completed=True)
+        save_checkpoint(
+            last_step,
+            model,
+            optimizer,
+            best_val_loss,
+            latest_checkpoint_path,
+            completed=True,
+        )
 
         # To preserve the best model's state, we don't overwrite the 'best' checkpoint.
         # Instead, we load the existing 'best' checkpoint, update its metadata to mark
@@ -344,12 +371,22 @@ def train_loop(
         if os.path.exists(best_checkpoint_path):
             # Load metadata, update flag, and resave.
             best_ckpt = torch.load(best_checkpoint_path)
-            best_ckpt['completed'] = True
+            best_ckpt["completed"] = True
             torch.save(best_ckpt, best_checkpoint_path)
-            logger.info(f"Updated best checkpoint {best_checkpoint_path} with completion status.")
+            logger.info(
+                f"Updated best checkpoint {best_checkpoint_path} with completion status."
+            )
 
     plot_and_log_loss(
-        train_losses, val_loss_dict, val_check_every, last_step, b_s, c_w, l_r, cfg, run_id
+        train_losses,
+        val_loss_dict,
+        val_check_every,
+        last_step,
+        b_s,
+        c_w,
+        l_r,
+        cfg,
+        run_id,
     )
     # returns the best checkpoint path after training run is complete.
     return best_checkpoint_path
