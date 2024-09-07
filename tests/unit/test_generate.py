@@ -2,18 +2,8 @@ import pytest
 from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 import os
-import sys
 
-# Add scripts and src to path to allow direct import
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../scripts"))
-)
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../src"))
-)
-
-# The script to be tested
-from generate import validate_generation_params, get_model_config_from_wandb
+from scripts.generate import validate_generation_params, get_model_config_from_wandb
 import wandb  # Import wandb to mock its exceptions
 
 # --- Fixtures ---

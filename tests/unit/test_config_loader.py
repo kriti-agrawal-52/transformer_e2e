@@ -4,14 +4,7 @@ import yaml
 from box import Box
 from unittest.mock import patch, mock_open
 
-# Add src to path to allow direct import
-import sys
-
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../src"))
-)
-
-from utils.config_loader import load_config
+from src.utils.config_loader import load_config
 
 
 @pytest.mark.unit

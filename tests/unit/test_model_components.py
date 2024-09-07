@@ -1,12 +1,8 @@
 import pytest
 import torch
 import os
-import sys
 
-# Add src to path to allow direct import
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../src')))
-
-from models.transformer import TransformerModel, MultiHeadAttention, FeedForward, Block
+from src.models.transformer import TransformerModel, MultiHeadAttention, FeedForward, Block
 
 @pytest.fixture
 def model_inputs(mock_config):

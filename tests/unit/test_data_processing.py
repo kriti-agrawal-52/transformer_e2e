@@ -2,14 +2,8 @@ import pytest
 import torch
 from transformers import AutoTokenizer
 import os
-import sys
 
-# Add src to path to allow direct import
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../src"))
-)
-
-from data.processing import PreprocessingTraining
+from src.data.processing import PreprocessingTraining
 
 
 @pytest.fixture(scope="module")

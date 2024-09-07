@@ -1,15 +1,9 @@
 import pytest
 import torch
 import os
-import sys
 from unittest.mock import MagicMock, patch
 
-# Add src to path to allow direct import
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../src"))
-)
-
-from training.manager import TrainingManager, ValidationLossComputationError
+from src.training.manager import TrainingManager, ValidationLossComputationError
 
 
 @pytest.fixture

@@ -1,15 +1,9 @@
 import pytest
 import os
-import sys
 from unittest.mock import patch, MagicMock
 from functools import partial
 
-# Add src to path to allow direct import
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../src"))
-)
-
-from training.manager import run_hyperparameter_search
+from src.training.manager import run_hyperparameter_search
 
 
 @pytest.fixture

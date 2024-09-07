@@ -1,7 +1,6 @@
 import pytest
 import os
 import subprocess
-import sys
 import yaml
 from types import SimpleNamespace
 

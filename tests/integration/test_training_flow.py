@@ -1,16 +1,10 @@
 import pytest
 import torch
 import os
-import sys
 from unittest.mock import patch, MagicMock
 
-# Add src to path to allow direct import
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../src"))
-)
-
-from training.manager import run_single_training
-from utils.config_loader import load_config
+from src.training.manager import run_single_training
+from src.utils.config_loader import load_config
 
 
 @pytest.fixture

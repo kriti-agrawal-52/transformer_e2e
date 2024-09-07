@@ -1,15 +1,6 @@
 import pytest
 import pkgutil
-import sys
-import os
-
-# Add src to the path to allow direct import
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../src"))
-)
-
 import src
-
 
 @pytest.mark.smoke
 def test_src_imports():

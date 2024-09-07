@@ -1,16 +1,10 @@
 import pytest
 import torch
 import os
-import sys
 from unittest.mock import patch, MagicMock
 
-# Add src to path to allow direct import
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../src"))
-)
-
-from serving.generator import run_generation, validate_generation_params
-from models.transformer import TransformerModel
+from src.serving.generator import run_generation, validate_generation_params
+from src.models.transformer import TransformerModel
 
 
 @pytest.fixture
