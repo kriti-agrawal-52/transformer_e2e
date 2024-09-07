@@ -17,7 +17,7 @@ TOKENIZER_NAME: "gpt2"
 # --- Data Loading Configuration ---
 # Set the maximum number of characters to use for training
 # This limits the dataset size for faster iteration, especially for tuning.
-RAW_TEXT_LIMIT: 10000000 # 50 Million characters
+RAW_TEXT_LIMIT: 10000000 # 10 Million characters
 
 RUN_MODE: "single" # single or grid
 
