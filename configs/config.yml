@@ -34,10 +34,10 @@ MIN_DELTA: 0.001 # we should not make this value too small because we want to ha
 EVAL_ITERS_VAL: 10 # for calculating evaluation loss, we randomly take EVAL_ITERS_VAL batches of validation set, and take their average loss.
 EVAL_ITERS_TEST: 20
 VALIDATION_CHECK_EVERY: 50
-DROPOUT_RATE: 0.1
-FINAL_DROPOUT_MULTIPLIER: 4
+DROPOUT_RATE: 0.2
+FINAL_DROPOUT_MULTIPLIER: 2
 MAX_DROPOUT_VAL: 0.5
-EARLY_STOPPING_PATIENCE: 10 # 20
+EARLY_STOPPING_PATIENCE: 20 # 20
 MIN_SUCCESSFUL_VAL_BATCH_RATIO: 0.5 # 0.5 means that we need at least 50% of the validation batches to be successful to continue training
 
 # --- TRAINING HYPERPARAMETERS GRID SEARCH FOR HYPERPARAMETER SEARCH ---
@@ -51,7 +51,7 @@ HP_VALIDATION_CHECK_EVERY: 25
 HP_EARLY_STOPPING_PATIENCE: 10
 
 # --- WANDB CONFIGURATIONS ---
-WANDB_PROJECT: "Transformer e2e"
+WANDB_PROJECT: "Transformer_e2e"
 WANDB_RUN_PREFIX:
   - "transformer_e2e_single_run_"
   - "transformer_e2e_sweep_"

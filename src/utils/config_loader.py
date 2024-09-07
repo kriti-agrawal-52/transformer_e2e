@@ -3,8 +3,22 @@ import torch
 import logging
 from types import SimpleNamespace
 import os
+import re
 
 logger = logging.getLogger(__name__)
+
+
+def _validate_wandb_project_name(name: str):
+    """
+    Validates that the W&B project name follows wandb's naming conventions.
+    Allowed characters: alphanumeric, dashes, underscores, and dots.
+    """
+    if not re.match(r"^[A-Za-z0-9_.-]+$", name):
+        raise ValueError(
+            f"Invalid WANDB_PROJECT name: '{name}'. "
+            "Name may only contain alphanumeric characters, dashes, underscores, and dots. "
+            "Please correct it in your config file."
+        )
 
 
 def load_config(config_path: str = "config.yml", as_namespace: bool = True):
@@ -24,6 +38,10 @@ def load_config(config_path: str = "config.yml", as_namespace: bool = True):
 
     with open(config_path, "r") as f:
         config_dict = yaml.safe_load(f)  # loads the yml file as a dictionary
+
+    # Validate W&B project name before any other processing
+    if "WANDB_PROJECT" in config_dict:
+        _validate_wandb_project_name(config_dict["WANDB_PROJECT"])
 
     if config_dict["DEVICE"] == "auto":
         config_dict["DEVICE"] = "cuda" if torch.cuda.is_available() else "cpu"
