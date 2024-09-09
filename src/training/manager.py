@@ -347,7 +347,7 @@ class TrainingManager:
                     success = wait_for_artifact_upload(logged_artifact, timeout_sec=300)
                     if success:
                         logger.info("Artifact upload finished.")
-                    self._cleanup_checkpoints()
+                        self._cleanup_checkpoints()
                     else:
                         logger.error(
                             "Artifact upload timed out or failed. Local checkpoints will NOT be deleted. Please check your network or W&B status."
