@@ -6,6 +6,7 @@ import sys
 from transformers import AutoTokenizer
 import os
 from src.models.transformer import TransformerModel
+import src.models.transformer_generate  # Import to add generate method to TransformerModel
 from src.utils.config_loader import load_config
 from dotenv import load_dotenv
 

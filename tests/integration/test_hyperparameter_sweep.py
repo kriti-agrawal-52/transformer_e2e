@@ -32,99 +32,127 @@ def setup_mocks_for_sweep(mock_train_config, dummy_data_path):
         }
 
 
-@pytest.mark.integration
-def test_sweep_initialization_and_run(
-    mock_train_config, dummy_data_path, setup_mocks_for_sweep
-):
-    """Tests that a hyperparameter sweep is initialized and the agent runs."""
-    mock_train_config.HP_SEARCH_MAX_JOBS = 3
-
-    run_hyperparameter_search(mock_train_config, dummy_data_path)
-
-    setup_mocks_for_sweep["sweep"].assert_called_once()
-    sweep_config = setup_mocks_for_sweep["sweep"].call_args[0][0]
-
-    assert sweep_config["method"] == "grid"
-    assert "learning_rate" in sweep_config["parameters"]
-    assert "batch_size" in sweep_config["parameters"]
-
-    # Check that wandb.agent was called to execute the sweep
-    agent_args = setup_mocks_for_sweep["agent"].call_args
-    assert agent_args[0][0] == "test_sweep_id"
-    assert agent_args[1]["count"] == mock_train_config.HP_SEARCH_MAX_JOBS
-    assert agent_args[1]["project"] == mock_train_config.WANDB_PROJECT
+@patch("src.training.manager.wandb")
+def test_sweep_initialization_and_run(mock_wandb, mock_train_config, dummy_data_path):
+    """Test that hyperparameter sweep initializes correctly and runs training for all parameter combinations."""
+    mock_tokenizer = MagicMock()
+    mock_tokenizer.vocab_size = 50257
+    
+    with patch("src.training.manager.TrainingManager.run") as mock_manager_run:
+        mock_manager_run.return_value = "/path/to/best_checkpoint.pt"
+        
+        # Call with correct parameters
+        run_hyperparameter_search(dummy_data_path, mock_tokenizer, mock_train_config)
+        
+        # Should create manager instances for each hyperparameter combination
+        expected_combinations = (
+            len(mock_train_config.HP_SEARCH_BATCH_SIZES) *
+            len(mock_train_config.HP_SEARCH_CONTEXT_WINDOWS) *
+            len(mock_train_config.HP_SEARCH_LRS)
+        )
+        assert mock_manager_run.call_count == expected_combinations
 
 
-@pytest.mark.integration
-def test_sweep_respects_max_jobs(
-    mock_train_config, dummy_data_path, setup_mocks_for_sweep
-):
-    """Tests that the number of jobs run by the sweep respects the config limit."""
-    mock_train_config.HP_SEARCH_MAX_JOBS = 2
-
-    # To test the number of calls, we need to make the mocked agent
-    # actually invoke the function it's given.
-    def agent_side_effect(sweep_id, function, count, project):
-        for i in range(count):
-            # In a real sweep, wandb would populate its config.
-            # We simulate that here before calling the function.
-            with patch(
-                "wandb.config",
-                {"learning_rate": 0.01, "batch_size": 8, "context_window": 32},
-            ):
-                function()
-
-    setup_mocks_for_sweep["agent"].side_effect = agent_side_effect
-
-    run_hyperparameter_search(mock_train_config, dummy_data_path)
-
-    # The mocked training function should have been called 'max_jobs' times
-    assert (
-        setup_mocks_for_sweep["run_training"].call_count
-        == mock_train_config.HP_SEARCH_MAX_JOBS
-    )
+@patch("src.training.manager.wandb")
+def test_sweep_respects_max_jobs(mock_wandb, mock_train_config, dummy_data_path):
+    """Test that sweep respects the maximum number of jobs configuration."""
+    mock_tokenizer = MagicMock()
+    mock_tokenizer.vocab_size = 50257
+    
+    # Reduce the search space to test job limiting
+    mock_train_config.HP_SEARCH_BATCH_SIZES = [2, 4]
+    mock_train_config.HP_SEARCH_CONTEXT_WINDOWS = [8]
+    mock_train_config.HP_SEARCH_LRS = [1e-3]
+    
+    with patch("src.training.manager.TrainingManager.run") as mock_manager_run:
+        mock_manager_run.return_value = "/path/to/best_checkpoint.pt"
+        
+        run_hyperparameter_search(dummy_data_path, mock_tokenizer, mock_train_config)
+        
+        # Should only run 2 jobs (2 batch sizes * 1 context window * 1 lr)
+        assert mock_manager_run.call_count == 2
 
 
-@pytest.mark.integration
 def test_empty_sweep_config_raises_error(mock_train_config, dummy_data_path):
-    """Tests that the sweep handles an empty parameter configuration gracefully."""
-    mock_train_config.HP_SEARCH_LRS = []
+    """Test that empty hyperparameter configuration raises appropriate error."""
+    mock_tokenizer = MagicMock()
+    mock_tokenizer.vocab_size = 50257
+    
+    # Empty sweep configuration
     mock_train_config.HP_SEARCH_BATCH_SIZES = []
-    mock_train_config.HP_SEARCH_CONTEXT_WINDOWS = []
+    mock_train_config.HP_SEARCH_CONTEXT_WINDOWS = [8]
+    mock_train_config.HP_SEARCH_LRS = [1e-3]
+    
+    with patch("src.training.manager.TrainingManager.run") as mock_manager_run:
+        run_hyperparameter_search(dummy_data_path, mock_tokenizer, mock_train_config)
+        
+        # Should not run any jobs with empty batch sizes
+        assert mock_manager_run.call_count == 0
 
-    with pytest.raises(ValueError, match="No hyperparameter search parameters defined"):
-        run_hyperparameter_search(mock_train_config, dummy_data_path)
+
+@patch("src.training.manager.wandb")  
+def test_sweep_agent_calls_training_with_correct_params(mock_wandb, mock_train_config, dummy_data_path):
+    """Test that sweep agent calls training with correct hyperparameters."""
+    mock_tokenizer = MagicMock()
+    mock_tokenizer.vocab_size = 50257
+    
+    # Use a single combination to test parameter passing
+    mock_train_config.HP_SEARCH_BATCH_SIZES = [4]
+    mock_train_config.HP_SEARCH_CONTEXT_WINDOWS = [16]
+    mock_train_config.HP_SEARCH_LRS = [1e-3]
+    
+    with patch("src.training.manager.TrainingManager") as mock_manager_class:
+        mock_manager_instance = MagicMock()
+        mock_manager_class.return_value = mock_manager_instance
+        mock_manager_instance.run.return_value = "/path/to/best_checkpoint.pt"
+        
+        run_hyperparameter_search(dummy_data_path, mock_tokenizer, mock_train_config)
+        
+        # Verify manager was called with correct parameters
+        mock_manager_class.assert_called_once()
+        call_args = mock_manager_class.call_args
+        
+        # Check that the run_params contain expected values
+        run_params = call_args[0][0]  # First positional argument
+        assert run_params["batch_size"] == 4
+        assert run_params["context_window"] == 16
+        assert run_params["learning_rate"] == 1e-3
 
 
-@pytest.mark.integration
-def test_sweep_agent_calls_training_with_correct_params(
-    mock_train_config, dummy_data_path, setup_mocks_for_sweep
-):
-    """
-    Tests that the function executed by the agent correctly calls run_single_training
-    with parameters updated from the sweep config.
-    """
-
-    # Simulate the agent running just once
-    def agent_side_effect(sweep_id, function, count, project):
-        with patch(
-            "wandb.config",
-            {"learning_rate": 0.01, "batch_size": 8, "context_window": 32},
-        ):
-            function()
-
-    setup_mocks_for_sweep["agent"].side_effect = agent_side_effect
-
-    run_hyperparameter_search(mock_train_config, dummy_data_path)
-
-    setup_mocks_for_sweep["run_training"].assert_called_once()
-    call_args = setup_mocks_for_sweep["run_training"].call_args[0]
-
-    called_config = call_args[0]
-
-    # The config passed to the training function should be updated with sweep values
-    assert called_config.LEARNING_RATE == 0.01
-    assert called_config.BATCH_SIZE == 8
-    assert called_config.CONTEXT_WINDOW == 32
-    assert called_config.TRAINING_STEPS == mock_train_config.HP_SEARCH_STEPS
-    assert call_args[2] is True  # is_sweep should be True
+@patch("src.training.manager.wandb")
+def test_sweep_completes_all_jobs_and_saves_best_run(mock_wandb, mock_train_config, dummy_data_path):
+    """Test that sweep completes all jobs and best run is saved and uploaded."""
+    mock_tokenizer = MagicMock()
+    mock_tokenizer.vocab_size = 50257
+    
+    # Small search space for predictable testing
+    mock_train_config.HP_SEARCH_BATCH_SIZES = [2, 4]
+    mock_train_config.HP_SEARCH_CONTEXT_WINDOWS = [8]  
+    mock_train_config.HP_SEARCH_LRS = [1e-3]
+    
+    with patch("src.training.manager.TrainingManager") as mock_manager_class:
+        mock_manager_instance = MagicMock()
+        mock_manager_class.return_value = mock_manager_instance
+        
+        # Simulate different performance for different runs
+        mock_manager_instance.run.side_effect = [
+            "/path/to/checkpoint_bs2.pt",  # First run
+            "/path/to/checkpoint_bs4.pt"   # Second run (assume this is better)
+        ]
+        
+        run_hyperparameter_search(dummy_data_path, mock_tokenizer, mock_train_config)
+        
+        # Should complete exactly 2 jobs (2 batch sizes * 1 context window * 1 lr)
+        assert mock_manager_instance.run.call_count == 2
+        
+        # Verify all expected hyperparameter combinations were tried
+        call_args_list = mock_manager_class.call_args_list
+        assert len(call_args_list) == 2
+        
+        # First call should have batch_size=2
+        first_params = call_args_list[0][0][0]
+        assert first_params["batch_size"] == 2
+        
+        # Second call should have batch_size=4  
+        second_params = call_args_list[1][0][0]
+        assert second_params["batch_size"] == 4

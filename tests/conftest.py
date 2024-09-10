@@ -39,11 +39,13 @@ def mock_config():
         "EARLY_STOPPING_PATIENCE": 3,
         "MIN_DELTA": 0.01,
         "EVAL_ITERS_VAL": 2,
+        "EVAL_ITERS_TEST": 2,
         "MIN_SUCCESSFUL_VAL_BATCH_RATIO": 0.5,
         "DROPOUT_RATE": 0.1,
         "WANDB_PROJECT": "test-project",
-        "WANDB_RUN_PREFIX": ["test-run"],
+        "WANDB_RUN_PREFIX": ["test-run", "test-tune"],
         "MODEL_CHECKPOINTS_DIR": "checkpoints",
+        "LOSS_PLOT_DIRECTORY": "plots",
         "LOG_FILE": "test.log",
         "DELETE_LATEST_CHECKPOINT_ON_COMPLETION": True,
         "TOKENIZER_NAME": "gpt2",
@@ -55,6 +57,7 @@ def mock_config():
         "HP_SEARCH_STEPS": 10,
         "HP_VALIDATION_CHECK_EVERY": 5,
         "HP_EARLY_STOPPING_PATIENCE": 3,
+        "DATASET_NAME": "test-dataset",
     }
     return SimpleNamespace(**config_dict)
 
@@ -64,8 +67,10 @@ def mock_train_config(mock_config, test_artifacts_dir):
     """Provides a mock training config for integration tests."""
     cfg = mock_config
     cfg.MODEL_CHECKPOINTS_DIR = os.path.join(test_artifacts_dir, "checkpoints")
+    cfg.LOSS_PLOT_DIRECTORY = os.path.join(test_artifacts_dir, "plots")
     cfg.LOG_FILE = os.path.join(test_artifacts_dir, "train.log")
     os.makedirs(cfg.MODEL_CHECKPOINTS_DIR, exist_ok=True)
+    os.makedirs(cfg.LOSS_PLOT_DIRECTORY, exist_ok=True)
     return cfg
 
 

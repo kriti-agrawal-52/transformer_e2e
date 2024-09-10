@@ -8,9 +8,10 @@ organiser.py
 __pycache__
 model_checkpoints/
 training_plots/
-transformer_main.log
+transformer_epic_model.log
 wandb_cleanup.py
 
 finetuning_docs/
 transformer_main.log
 wandb/
+
