@@ -388,5 +388,14 @@ def train_loop(
         cfg,
         run_id,
     )
-    # returns the best checkpoint path after training run is complete.
-    return best_checkpoint_path
+    
+    # Return training completion information
+    completion_info = {
+        "best_checkpoint_path": best_checkpoint_path,
+        "completed_successfully": training_completed_successfully,
+        "final_step": last_step,
+        "final_best_loss": best_val_loss,
+        "completion_reason": "early_stopping" if stale_checks >= patience else ("all_steps_completed" if training_completed_successfully else "interrupted")
+    }
+    
+    return completion_info

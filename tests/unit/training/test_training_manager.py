@@ -2,10 +2,16 @@ import pytest
 import torch
 import os
 import tempfile
+import json
 from unittest.mock import MagicMock, patch, mock_open
 from types import SimpleNamespace
 
-from src.training.manager import TrainingManager
+from src.training.manager import (
+    TrainingManager, 
+    save_completion_status, 
+    load_completion_status, 
+    clear_completion_status
+)
 
 
 @pytest.fixture
@@ -205,3 +211,124 @@ def test_load_corrupted_checkpoint(mock_training_manager):
             # The actual load_checkpoint function should handle this
             result = manager.best_ckpt_path  # Just verify manager is still functional
             assert result is not None
+
+
+@pytest.mark.unit
+def test_save_completion_status():
+    """Test saving completion status to persistent metadata file."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        mock_cfg = SimpleNamespace(MODEL_CHECKPOINTS_DIR=tmpdir)
+        run_id = "test-run-123"
+        completion_info = {
+            "reason": "training_completed_successfully",
+            "final_step": 100,
+            "final_best_loss": 1.5,
+            "best_checkpoint_logged": True,
+            "post_training_eval_done": True
+        }
+        
+        # Save completion status
+        save_completion_status(run_id, mock_cfg, completion_info)
+        
+        # Verify file was created
+        completion_dir = os.path.join(tmpdir, "completion_tracking")
+        completion_file = os.path.join(completion_dir, f"{run_id}_completed.json")
+        assert os.path.exists(completion_file), "Completion file should exist"
+        
+        # Verify file content
+        with open(completion_file, 'r') as f:
+            saved_data = json.load(f)
+        
+        assert saved_data["run_id"] == run_id
+        assert saved_data["completed"] is True
+        assert saved_data["completion_reason"] == "training_completed_successfully"
+        assert saved_data["final_step"] == 100
+        assert saved_data["final_best_loss"] == 1.5
+        assert "completion_timestamp" in saved_data
+
+
+@pytest.mark.unit 
+def test_load_completion_status():
+    """Test loading completion status from persistent metadata file."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        mock_cfg = SimpleNamespace(MODEL_CHECKPOINTS_DIR=tmpdir)
+        run_id = "test-run-456"
+        
+        # Create completion tracking directory and file
+        completion_dir = os.path.join(tmpdir, "completion_tracking")
+        os.makedirs(completion_dir, exist_ok=True)
+        completion_file = os.path.join(completion_dir, f"{run_id}_completed.json")
+        
+        completion_data = {
+            "run_id": run_id,
+            "completed": True,
+            "completion_timestamp": "2024-01-01T12:00:00.000000",
+            "completion_reason": "early_stopping",
+            "final_step": 50,
+            "final_best_loss": 2.1
+        }
+        
+        with open(completion_file, 'w') as f:
+            json.dump(completion_data, f)
+        
+        # Load completion status
+        loaded_data = load_completion_status(run_id, mock_cfg)
+        
+        assert loaded_data is not None
+        assert loaded_data["run_id"] == run_id
+        assert loaded_data["completed"] is True
+        assert loaded_data["completion_reason"] == "early_stopping"
+        assert loaded_data["final_step"] == 50
+        assert loaded_data["final_best_loss"] == 2.1
+
+
+@pytest.mark.unit
+def test_load_completion_status_nonexistent():
+    """Test loading completion status when file doesn't exist."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        mock_cfg = SimpleNamespace(MODEL_CHECKPOINTS_DIR=tmpdir)
+        run_id = "nonexistent-run"
+        
+        # Try to load non-existent completion status
+        result = load_completion_status(run_id, mock_cfg)
+        
+        assert result is None
+
+
+@pytest.mark.unit
+def test_clear_completion_status():
+    """Test clearing completion status for a run."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        mock_cfg = SimpleNamespace(MODEL_CHECKPOINTS_DIR=tmpdir)
+        run_id = "test-run-789"
+        
+        # Create completion tracking directory and file
+        completion_dir = os.path.join(tmpdir, "completion_tracking")
+        os.makedirs(completion_dir, exist_ok=True)
+        completion_file = os.path.join(completion_dir, f"{run_id}_completed.json")
+        
+        completion_data = {"run_id": run_id, "completed": True}
+        with open(completion_file, 'w') as f:
+            json.dump(completion_data, f)
+        
+        # Verify file exists
+        assert os.path.exists(completion_file), "Completion file should exist initially"
+        
+        # Clear completion status
+        result = clear_completion_status(run_id, mock_cfg)
+        
+        assert result is True, "Should return True for successful clearing"
+        assert not os.path.exists(completion_file), "Completion file should be deleted"
+
+
+@pytest.mark.unit
+def test_clear_completion_status_nonexistent():
+    """Test clearing completion status when file doesn't exist."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        mock_cfg = SimpleNamespace(MODEL_CHECKPOINTS_DIR=tmpdir)
+        run_id = "nonexistent-run"
+        
+        # Try to clear non-existent completion status
+        result = clear_completion_status(run_id, mock_cfg)
+        
+        assert result is False, "Should return False when file doesn't exist"

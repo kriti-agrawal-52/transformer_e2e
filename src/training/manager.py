@@ -6,12 +6,58 @@ import wandb
 import os
 import logging
 import threading
+import json
+from datetime import datetime
 
 from src.models.transformer import TransformerModel
 from src.data.processing import PreprocessingTraining
 from src.training.utils import train_loop, load_checkpoint, evaluate_validation_loss
 
 logger = logging.getLogger(__name__)
+
+
+def save_completion_status(run_id, cfg, completion_info):
+    """Saves completion status to a persistent metadata file."""
+    completion_dir = os.path.join(cfg.MODEL_CHECKPOINTS_DIR, "completion_tracking")
+    os.makedirs(completion_dir, exist_ok=True)
+    
+    completion_file = os.path.join(completion_dir, f"{run_id}_completed.json")
+    
+    completion_data = {
+        "run_id": run_id,
+        "completed": True,
+        "completion_timestamp": datetime.now().isoformat(),
+        "completion_reason": completion_info.get("reason", "unknown"),
+        "final_step": completion_info.get("final_step", None),
+        "final_best_loss": completion_info.get("final_best_loss", None),
+        "best_checkpoint_logged": completion_info.get("best_checkpoint_logged", False),
+        "post_training_eval_done": completion_info.get("post_training_eval_done", False)
+    }
+    
+    try:
+        with open(completion_file, 'w') as f:
+            json.dump(completion_data, f, indent=2)
+        logger.info(f"Saved completion status to {completion_file}")
+    except Exception as e:
+        logger.error(f"Failed to save completion status: {e}", exc_info=True)
+
+
+def load_completion_status(run_id, cfg):
+    """Loads completion status from persistent metadata file."""
+    completion_dir = os.path.join(cfg.MODEL_CHECKPOINTS_DIR, "completion_tracking")
+    completion_file = os.path.join(completion_dir, f"{run_id}_completed.json")
+    
+    if not os.path.exists(completion_file):
+        return None
+    
+    try:
+        with open(completion_file, 'r') as f:
+            completion_data = json.load(f)
+        logger.info(f"Found completion status for run {run_id}: {completion_data['completion_reason']} at step {completion_data.get('final_step', 'unknown')}")
+        return completion_data
+    except Exception as e:
+        logger.error(f"Failed to load completion status for run {run_id}: {e}", exc_info=True)
+        return None
 
 
 def run_post_training_eval(model, prep, best_model_path, cfg, device):
@@ -167,6 +213,22 @@ class TrainingManager:
             resume="allow",
             reinit=True,
         )
+        
+        # Check persistent completion status first
+        completion_status = load_completion_status(self.run_id, self.cfg)
+        if completion_status and completion_status.get("completed", False):
+            logger.warning(
+                f"Run {self.run_id} was previously completed ({completion_status['completion_reason']} at step {completion_status.get('final_step', 'unknown')}). Skipping training."
+            )
+            print(f"Run {self.run_id} was previously completed. Skipping training.")
+            
+            # For completed runs that were cleaned up, we might need to retrieve the model from W&B artifacts
+            # For now, we'll just log that this run was already completed and exit
+            if wandb.run:
+                wandb.log({"run_status": "already_completed", "completion_reason": completion_status['completion_reason']})
+                wandb.finish()
+            return None
+        
         # Use the predefined best path as the default. It will be updated by train_loop if training occurs.
         final_best_model_path = self.best_ckpt_path
         try:
@@ -183,41 +245,59 @@ class TrainingManager:
                 num_heads=self.params["num_heads"],
                 num_layers=self.params["num_layers"],
             ).to(self.device)
+            
+            # Load checkpoint to resume training if it exists
             start_step, opt_state, best_loss, was_completed = load_checkpoint(
                 model, self.latest_ckpt_path, self.device
             )
 
-            if was_completed:  # if the run was explicitly marked as completed
+            # The was_completed flag from checkpoint is now only used for runs that haven't been cleaned up yet
+            # For cleaned up runs, we rely on the persistent completion status checked above
+            if was_completed:  # This handles cases where checkpoint still exists and is marked completed
                 logger.warning(
-                    f"Run {self.run_id} was previously completed (either finished all steps or early stopped). Skipping."
+                    f"Run {self.run_id} checkpoint indicates completion. This shouldn't happen if cleanup worked properly."
                 )
-                print(f"Run {self.run_id} was previously completed. Skipping training.")
-                # We still need to run post-training eval and artifact logging if they haven't been done
-                # But we will skip the training part
-                # Ensure the model is loaded from the best checkpoint if it was completed
+                print(f"Run {self.run_id} was previously completed (from checkpoint). Skipping training.")
+                
+                # Save completion status for future reference and clean up
+                completion_info = {
+                    "reason": "found_completed_checkpoint",
+                    "final_step": start_step - 1,
+                    "final_best_loss": best_loss
+                }
+                save_completion_status(self.run_id, self.cfg, completion_info)
+                
+                # Handle best checkpoint loading
                 if os.path.exists(self.best_ckpt_path):
                     best_checkpoint = torch.load(
                         self.best_ckpt_path, map_location=self.device
                     )
                     model.load_state_dict(best_checkpoint["model_state_dict"])
-                    final_best_model_path = self.best_ckpt_path  # Set this explicitly
+                    final_best_model_path = self.best_ckpt_path
                 else:
                     logger.warning(
                         f"Best model checkpoint {self.best_ckpt_path} not found for a completed run."
                     )
-                    # Handle case where best checkpoint might be missing for a completed run (unlikely if completion logic is sound)
                     if wandb.run:
                         wandb.finish()
-                    return None  # Exit if no best model to work with
+                    return None
             elif (
                 start_step > self.params["steps"]
             ):  # This handles cases where a run was partially completed, but now the desired steps are less than what was already done.
                 logger.warning(
-                    f"Run {self.run_id} already completed {start_step - 1} steps, which is more than target {self.params['steps']}. Skipping training."
+                    f"Run {self.run_id} already completed {start_step - 1} steps, which is more than target {self.params['steps']}. Marking as completed."
                 )
-                print(f"Run {self.run_id} already completed. Skipping training.")
-                was_completed = True  # Treat as completed for subsequent logic
-                # Ensure the model is loaded from the best checkpoint if it effectively completed
+                print(f"Run {self.run_id} already completed target steps. Marking as completed.")
+                
+                # Save completion status
+                completion_info = {
+                    "reason": "exceeded_target_steps",
+                    "final_step": start_step - 1,
+                    "final_best_loss": best_loss
+                }
+                save_completion_status(self.run_id, self.cfg, completion_info)
+                
+                # Handle best checkpoint loading
                 if os.path.exists(self.best_ckpt_path):
                     best_checkpoint = torch.load(
                         self.best_ckpt_path, map_location=self.device
@@ -295,7 +375,7 @@ class TrainingManager:
                     threshold=self.cfg.MIN_DELTA,
                 )
 
-                final_best_model_path = train_loop(
+                training_result = train_loop(
                     model,
                     prep,
                     optimizer,
@@ -307,7 +387,19 @@ class TrainingManager:
                     opt_state,
                     best_loss,
                 )
-                was_completed = True
+                
+                # Extract information from training result
+                final_best_model_path = training_result["best_checkpoint_path"]
+                training_completed = training_result["completed_successfully"]
+                
+                # Save completion status if training completed successfully
+                if training_completed:
+                    completion_info = {
+                        "reason": training_result["completion_reason"],
+                        "final_step": training_result["final_step"],
+                        "final_best_loss": training_result["final_best_loss"]
+                    }
+                    save_completion_status(self.run_id, self.cfg, completion_info)
 
             # --- POST-TRAINING LOGIC (APPLIES TO NEWLY COMPLETED AND RESUMED-COMPLETED RUNS) ---
             if not os.path.exists(final_best_model_path):
@@ -320,25 +412,20 @@ class TrainingManager:
                     wandb.finish()
                 return None  # Exit if there is no best model to work with
 
-            # Only run post-training eval if it's a single run and the training was completed successfully
-            # This prevents re-running eval for every hyperparameter search run if it was already evaluated
-            if (
-                self.is_single_run and was_completed
-            ):  # Run eval if it was completed (either now or previously)
+            # Only run post-training eval if it's a single run
+            if self.is_single_run:
                 run_post_training_eval(
                     model, prep, final_best_model_path, self.cfg, self.device
                 )
 
             logged_artifact = None
-            # Log artifact if it's a single run, or if ALWAYS_LOG_ARTIFACTS is true, AND the run was completed
-            if (self.is_single_run or self.cfg.ALWAYS_LOG_ARTIFACTS) and was_completed:
+            # Log artifact if it's a single run, or if ALWAYS_LOG_ARTIFACTS is true
+            if self.is_single_run or self.cfg.ALWAYS_LOG_ARTIFACTS:
                 logged_artifact = log_artifact(
                     final_best_model_path, self.run_id, self.params, self.cfg
                 )
 
-            if (
-                logged_artifact
-            ):  # If artifact was logged successfully on wandb, we can clear up local checkpoints
+            if logged_artifact:  # If artifact was logged successfully on wandb, we can clear up local checkpoints
                 try:
                     logger.info(
                         "Waiting for artifact upload to complete (timeout: 300s)..."
@@ -444,3 +531,74 @@ def run_hyperparameter_search(raw_text, tokenizer, cfg):
                 results.append({"params": tune_params, "best_ckpt": best_ckpt})
 
     logger.info("--- Hyperparameter Search Finished ---")
+
+
+def clear_completion_status(run_id, cfg):
+    """Clears completion status for a specific run - useful for debugging or re-running."""
+    completion_dir = os.path.join(cfg.MODEL_CHECKPOINTS_DIR, "completion_tracking")
+    completion_file = os.path.join(completion_dir, f"{run_id}_completed.json")
+    
+    if os.path.exists(completion_file):
+        try:
+            os.remove(completion_file)
+            logger.info(f"Cleared completion status for run {run_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to clear completion status for run {run_id}: {e}", exc_info=True)
+            return False
+    else:
+        logger.info(f"No completion status found for run {run_id}")
+        return False
+
+
+def list_completed_runs(cfg):
+    """Lists all completed runs with their completion information."""
+    completion_dir = os.path.join(cfg.MODEL_CHECKPOINTS_DIR, "completion_tracking")
+    
+    if not os.path.exists(completion_dir):
+        logger.info("No completion tracking directory found.")
+        return []
+    
+    completed_runs = []
+    try:
+        for filename in os.listdir(completion_dir):
+            if filename.endswith("_completed.json"):
+                filepath = os.path.join(completion_dir, filename)
+                try:
+                    with open(filepath, 'r') as f:
+                        completion_data = json.load(f)
+                    completed_runs.append(completion_data)
+                except Exception as e:
+                    logger.error(f"Failed to read completion file {filename}: {e}")
+                    continue
+        
+        # Sort by completion timestamp
+        completed_runs.sort(key=lambda x: x.get('completion_timestamp', ''), reverse=True)
+        return completed_runs
+    
+    except Exception as e:
+        logger.error(f"Failed to list completed runs: {e}", exc_info=True)
+        return []
+
+
+def print_completed_runs_summary(cfg):
+    """Prints a summary of all completed runs."""
+    completed_runs = list_completed_runs(cfg)
+    
+    if not completed_runs:
+        print("No completed runs found.")
+        return
+    
+    print(f"\nFound {len(completed_runs)} completed runs:")
+    print("-" * 80)
+    print(f"{'Run ID':<40} {'Reason':<20} {'Final Step':<12} {'Final Loss':<12}")
+    print("-" * 80)
+    
+    for run in completed_runs:
+        run_id = run.get('run_id', 'N/A')[:39]  # Truncate if too long
+        reason = run.get('completion_reason', 'N/A')[:19]
+        final_step = str(run.get('final_step', 'N/A'))[:11]
+        final_loss = f"{run.get('final_best_loss', 'N/A'):.4f}" if isinstance(run.get('final_best_loss'), (int, float)) else 'N/A'
+        final_loss = final_loss[:11]
+        
+        print(f"{run_id:<40} {reason:<20} {final_step:<12} {final_loss:<12}")
