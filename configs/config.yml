@@ -22,23 +22,24 @@ RAW_TEXT_LIMIT: 10000000 # 10 Million characters
 RUN_MODE: "single" # single or grid
 
 # --- TRAINING HYPERPARAMETERS FOR SINGLE RUN TRAINING---
-BATCH_SIZE: 8
-CONTEXT_WINDOW: 64
-CHANNEL_DIM: 128
-NUM_HEADS: 4
-NUM_LAYERS: 4
-LEARNING_RATE: 3e-4 # 5e-4
-TRAINING_STEPS: 10000
+BATCH_SIZE: 16
+CONTEXT_WINDOW: 128
+CHANNEL_DIM: 256
+NUM_HEADS: 8
+NUM_LAYERS: 6
+LEARNING_RATE: 1e-4
+TRAINING_STEPS: 20000
 
-MIN_DELTA: 0.001 # we should not make this value too small because we want to have meaningful improvement in our validation loss
+MIN_DELTA: 0.002 # we should not make this value too small because we want to have meaningful improvement in our validation loss
 EVAL_ITERS_VAL: 10 # for calculating evaluation loss, we randomly take EVAL_ITERS_VAL batches of validation set, and take their average loss.
 EVAL_ITERS_TEST: 20
-VALIDATION_CHECK_EVERY: 50
-DROPOUT_RATE: 0.2
-FINAL_DROPOUT_MULTIPLIER: 2
-MAX_DROPOUT_VAL: 0.5
-EARLY_STOPPING_PATIENCE: 20 # 20
-MIN_SUCCESSFUL_VAL_BATCH_RATIO: 0.5 # 0.5 means that we need at least 50% of the validation batches to be successful to continue training
+VALIDATION_CHECK_EVERY: 100
+DROPOUT_RATE: 0.15
+FINAL_DROPOUT_MULTIPLIER: 1.5
+MAX_DROPOUT_VAL: 0.3
+EARLY_STOPPING_PATIENCE: 30
+MIN_SUCCESSFUL_VAL_BATCH_RATIO: 0.5 # 0.5 means that we need at least 50%
+# of the validation batches to be successful to continue training
 
 # --- TRAINING HYPERPARAMETERS GRID SEARCH FOR HYPERPARAMETER SEARCH ---
 HP_SEARCH_LRS: [3e-4, 1e-4]
