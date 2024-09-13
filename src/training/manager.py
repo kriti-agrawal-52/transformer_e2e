@@ -244,6 +244,9 @@ class TrainingManager:
                 context_window=prep.time_steps,
                 num_heads=self.params["num_heads"],
                 num_layers=self.params["num_layers"],
+                dropout_rate=self.params["dropout_rate"],
+                final_dropout_multiplier=self.params["final_dropout_multiplier"],
+                max_dropout_val=self.params["max_dropout_val"],
             ).to(self.device)
             
             # Load checkpoint to resume training if it exists
