@@ -16,6 +16,20 @@ from src.training.utils import train_loop, load_checkpoint, evaluate_validation_
 logger = logging.getLogger(__name__)
 
 
+def generate_run_timestamp():
+    """
+    Generate a consistent timestamp string for run IDs.
+    
+    Why timestamps in run IDs?
+    - Prevents W&B run ID conflicts (HTTP 409 errors)
+    - Makes each run globally unique without database lookups
+    - Groups related hyperparameter search runs by execution time
+    - Provides clear traceability of when experiments were conducted
+    - Eliminates need for manual run clearing or suffix incrementation
+    """
+    return datetime.now().strftime("%Y%m%d_%H%M")  # YYYYMMDD_HHMM format
+
+
 def save_completion_status(run_id, cfg, completion_info):
     """Saves completion status to a persistent metadata file."""
     completion_dir = os.path.join(cfg.MODEL_CHECKPOINTS_DIR, "completion_tracking")
@@ -211,7 +225,7 @@ class TrainingManager:
             config=self.params,  # Log all run-specific params
             id=self.run_id,
             resume="allow",
-            reinit=True,
+            finish_previous=True,  # Fixed: Use finish_previous instead of deprecated reinit
         )
         
         # Check persistent completion status first
@@ -461,8 +475,10 @@ def run_single_training(raw_text, tokenizer, cfg):
     """configures and runs a training run with fixed hyperparameters, ie a single phase"""
     logger.info("--- Starting Single Training Run ---")
     cfg.LEARNING_RATE = float(cfg.LEARNING_RATE)
+    # Generate unique run ID with timestamp to avoid W&B conflicts and ensure traceability
+    timestamp = generate_run_timestamp()
     run_id = (
-        f"single_bs{cfg.BATCH_SIZE}_cw{cfg.CONTEXT_WINDOW}_lr{cfg.LEARNING_RATE:.0e}"
+        f"single_bs{cfg.BATCH_SIZE}_cw{cfg.CONTEXT_WINDOW}_lr{cfg.LEARNING_RATE:.0e}_{timestamp}"
     )
     # base dropout rate
     base_dropout = getattr(cfg, "DROPOUT_RATE", 0.1)  # Default to 0.1 if not in cfg
@@ -499,6 +515,12 @@ def run_hyperparameter_search(raw_text, tokenizer, cfg):
     """Configures and runs multiple training sessions for tuning."""
     logger.info("--- Starting Hyperparameter Search ---")
     results = []
+    
+    # Generate timestamp once for the entire sweep to group related runs
+    # All runs in this hyperparameter search will share the same timestamp,
+    # making it easy to identify which runs belong to the same experiment batch
+    timestamp = generate_run_timestamp()
+    
     base_dropout = getattr(cfg, "DROPOUT_RATE", 0.1)  # Default to 0.1 if not in cfg
     final_multiplier = getattr(
         cfg, "FINAL_DROPOUT_MULTIPLIER", None
@@ -507,8 +529,10 @@ def run_hyperparameter_search(raw_text, tokenizer, cfg):
     for bs in cfg.HP_SEARCH_BATCH_SIZES:
         for cw in cfg.HP_SEARCH_CONTEXT_WINDOWS:
             for lr in cfg.HP_SEARCH_LRS:
-                run_id = f"tune_{bs}_{cw}_{lr:.0e}"
-                run_name = f"{cfg.WANDB_RUN_PREFIX[1]}_bs{bs}_cw{cw}_lr{lr:.0e}"
+                # Create consistent run ID format with timestamp suffix for uniqueness
+                # Format: tune_bs{batch_size}_cw{context_window}_lr{learning_rate}_{timestamp}
+                run_id = f"tune_bs{bs}_cw{cw}_lr{lr:.0e}_{timestamp}"
+                run_name = f"{cfg.WANDB_RUN_PREFIX[1]}_bs{bs}_cw{cw}_lr{lr:.0e}_{timestamp}"
 
                 logger.info(f"Starting Tuning Run: {run_name}")
                 tune_params = {

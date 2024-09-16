@@ -26,7 +26,7 @@ def main():
     parser.add_argument(
         "--config", 
         type=str, 
-        default="config.yml",
+        default="configs/config.yml",
         help="Path to the configuration file"
     )
     
@@ -51,7 +51,12 @@ def main():
     
     # Load configuration
     try:
+        print(f"Loading config from: {os.path.abspath(args.config)}")
         cfg = load_config(args.config)
+    except FileNotFoundError:
+        print(f"Error: Config file not found at {os.path.abspath(args.config)}")
+        print(f"Please ensure the config file exists or specify the correct path with --config")
+        return
     except Exception as e:
         print(f"Error loading config: {e}")
         return
