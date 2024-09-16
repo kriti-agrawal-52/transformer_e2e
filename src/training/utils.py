@@ -314,10 +314,8 @@ def train_loop(
                     )
                     logger.info(f" New Best Model (Val: {best_val_loss:.4f})")
                     print(" New Best Model; Checkpoint saved.")
-                    wandb.save(best_checkpoint_path)
-                    # wandb.save() uploads the file to the current W&B run's file storage.
-                    # This makes the file available for download from the run page, but does not
-                    # register it in the W&B Model Registry as an artifact.
+                    # Note: We don't use wandb.save() here as it can cause symlink issues on Google Colab/Drive.
+                    # The model will be properly logged as a W&B artifact after training completes.
                 else:
                     stale_checks += 1
                     logger.info(f" No improvement: {stale_checks}/{patience}")
