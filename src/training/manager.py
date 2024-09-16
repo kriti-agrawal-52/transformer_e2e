@@ -224,8 +224,7 @@ class TrainingManager:
             tags=self.params.get("tags", []),
             config=self.params,  # Log all run-specific params
             id=self.run_id,
-            resume="allow",
-            finish_previous=True,  # Fixed: Use finish_previous instead of deprecated reinit
+            resume="allow"
         )
         
         # Check persistent completion status first
