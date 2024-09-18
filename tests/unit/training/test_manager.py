@@ -57,8 +57,7 @@ def mock_training_manager():
             run_params=run_params,
             tokenizer=mock_tokenizer, 
             raw_text=raw_text,
-            cfg=mock_cfg,
-            is_single_run=True
+            cfg=mock_cfg
         )
     return manager
 

@@ -5,6 +5,15 @@ import shutil
 import yaml
 
 
+def pytest_configure(config):
+    """Configure pytest markers."""
+    config.addinivalue_line("markers", "unit: mark test as a unit test")
+    config.addinivalue_line("markers", "integration: mark test as an integration test")
+    config.addinivalue_line("markers", "e2e: mark test as an end-to-end test")
+    config.addinivalue_line("markers", "smoke: mark test as a smoke test")
+    config.addinivalue_line("markers", "slow: mark test as slow running")
+
+
 @pytest.fixture(scope="session")
 def test_artifacts_dir(tmpdir_factory):
     """Create a temporary directory for test artifacts."""
