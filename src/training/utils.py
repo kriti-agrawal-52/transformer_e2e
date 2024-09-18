@@ -10,15 +10,54 @@ from src.utils.exceptions import ValidationLossComputationError
 logger = logging.getLogger(__name__)
 
 
-def save_checkpoint(step, model, optimizer, best_loss, path, completed=False):
-    """Saves a checkpoint containing model/optimizer states, step and training completion status"""
+def get_checkpoint_paths(run_id, cfg, run_params=None):
+    """
+    Centralized utility function to generate checkpoint file paths.
+    
+    Args:
+        run_id: The run identifier
+        cfg: Configuration object containing MODEL_CHECKPOINTS_DIR
+        run_params: Optional dictionary with run parameters. If provided, 
+                   hyperparameters are extracted from here. Otherwise, they're 
+                   extracted from cfg.
+    
+    Returns:
+        dict: Dictionary with 'latest' and 'best' checkpoint paths
+    """
+    if run_params:
+        # Extract from run_params (used by TrainingManager)
+        bs = run_params["batch_size"]
+        cw = run_params["context_window"]
+        lr = run_params["learning_rate"]
+    else:
+        # Extract from cfg (used by generate_smart_run_id)
+        bs = cfg.BATCH_SIZE if hasattr(cfg, 'BATCH_SIZE') else "unknown"
+        cw = cfg.CONTEXT_WINDOW if hasattr(cfg, 'CONTEXT_WINDOW') else "unknown" 
+        lr = f"{cfg.LEARNING_RATE:.0e}" if hasattr(cfg, 'LEARNING_RATE') else "unknown"
+    
+    # Format learning rate consistently
+    if isinstance(lr, (int, float)):
+        lr_str = f"{lr:.0e}"
+    else:
+        lr_str = str(lr)
+    
+    base_filename = f"run_{run_id}_bs{bs}_cw{cw}_lr{lr_str}"
+    
+    return {
+        'latest': os.path.join(cfg.MODEL_CHECKPOINTS_DIR, f"{base_filename}_latest.pt"),
+        'best': os.path.join(cfg.MODEL_CHECKPOINTS_DIR, f"{base_filename}_best.pt"),
+        'base_filename': base_filename  # Also return base filename for other uses
+    }
+
+
+def save_checkpoint(step, model, optimizer, best_loss, path):
+    """Saves a checkpoint containing model/optimizer states and step"""
     torch.save(
         {
             "step": step,
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "best_val_loss": best_loss,
-            "completed": completed,
         },
         path,
     )
@@ -26,11 +65,10 @@ def save_checkpoint(step, model, optimizer, best_loss, path, completed=False):
 
 
 def load_checkpoint(model, checkpoint_path, device):
-    """Loads a checkpoint and returns the start step, optimizer state, best loss, and completion status."""
+    """Loads a checkpoint and returns the start step, optimizer state, and best loss."""
     start_step = 1
     opt_state = None
     best_loss = float("inf")
-    was_completed = False  # Default to false
     if os.path.exists(checkpoint_path):
         logger.info(f"Found checkpoint: {checkpoint_path}. Attempting to resume.")
         print(f"Resuming from checkpoint: {os.path.basename(checkpoint_path)}")
@@ -40,11 +78,9 @@ def load_checkpoint(model, checkpoint_path, device):
             opt_state = checkpoint["optimizer_state_dict"]
             start_step = checkpoint["step"] + 1
             best_loss = checkpoint.get("best_val_loss", float("inf"))
-            was_completed = checkpoint.get("completed", False)  # Load completion status
             logger.info(
                 f"Resuming from step {start_step} "
                 f"with best_val_loss {best_loss:.4f}"
-                f"{' (Previously completed)' if was_completed else ''}"  # Log if completed
             )
         except Exception as e:
             logger.error(
@@ -56,7 +92,7 @@ def load_checkpoint(model, checkpoint_path, device):
     else:
         logger.info("No checkpoint found. Starting fresh.")
 
-    return start_step, opt_state, best_loss, was_completed
+    return start_step, opt_state, best_loss
 
 
 def plot_and_log_loss(
@@ -212,13 +248,9 @@ def train_loop(
     # Define checkpoint paths
     # This ensures that checkpoints during runs do not get overwritten when we are doing hyperparameter search
     # this also helps us differentiate between best model during training, and checkpoints saved every few steps to help restart training
-    base_filename = f"run_{run_id}_bs{b_s}_cw{c_w}_lr{l_r:.0e}"
-    latest_checkpoint_path = os.path.join(
-        cfg.MODEL_CHECKPOINTS_DIR, f"{base_filename}_latest.pt"
-    )
-    best_checkpoint_path = os.path.join(
-        cfg.MODEL_CHECKPOINTS_DIR, f"{base_filename}_best.pt"
-    )
+    checkpoint_paths = get_checkpoint_paths(run_id, cfg, run_params)
+    latest_checkpoint_path = checkpoint_paths['latest']
+    best_checkpoint_path = checkpoint_paths['best']
 
     train_losses = []
     val_loss_dict = {}
@@ -287,7 +319,7 @@ def train_loop(
                 )
 
                 # We save a 'latest' checkpoint at each validation step to support resumption.
-                # However, we skip this on the final step because a definitive 'completed' checkpoint
+                # However, we skip this on the final step because a definitive checkpoint
                 # will be created after the loop finishes, making this one redundant.
                 if not is_last_step:
                     save_checkpoint(
@@ -296,21 +328,18 @@ def train_loop(
                         optimizer,
                         best_val_loss,
                         latest_checkpoint_path,
-                        completed=False,
                     )
 
                 if val_loss < best_val_loss - cfg.MIN_DELTA:
                     best_val_loss = val_loss
                     stale_checks = 0
                     # If the model has improved, we save its state as the new 'best' checkpoint.
-                    # This checkpoint will be marked as 'completed' later if the training run finishes successfully.
                     save_checkpoint(
                         step,
                         model,
                         optimizer,
                         best_val_loss,
                         best_checkpoint_path,
-                        completed=False,
                     )
                     logger.info(f" New Best Model (Val: {best_val_loss:.4f})")
                     print(" New Best Model; Checkpoint saved.")
@@ -348,31 +377,25 @@ def train_loop(
 
     if training_completed_successfully:
         logger.info(
-            f"Training completed at step {last_step}. Marking final checkpoints as completed."
+            f"Training completed at step {last_step}. Saving final checkpoint."
         )
 
-        # After a successful training run, we save the final state to the 'latest' checkpoint
-        # and explicitly mark it as 'completed'. This signifies that the run finished properly.
+        # After a successful training run, we save the final state to the 'latest' checkpoint.
         save_checkpoint(
             last_step,
             model,
             optimizer,
             best_val_loss,
             latest_checkpoint_path,
-            completed=True,
         )
 
-        # To preserve the best model's state, we don't overwrite the 'best' checkpoint.
-        # Instead, we load the existing 'best' checkpoint, update its metadata to mark
-        # it as completed, and then save it back. This ensures we keep the best model's weights
-        # while still indicating that the training process it came from is now complete.
+        # Ensure the best checkpoint is preserved with its final state.
         if os.path.exists(best_checkpoint_path):
-            # Load metadata, update flag, and resave.
+            # Load and resave to ensure consistency.
             best_ckpt = torch.load(best_checkpoint_path)
-            best_ckpt["completed"] = True
             torch.save(best_ckpt, best_checkpoint_path)
             logger.info(
-                f"Updated best checkpoint {best_checkpoint_path} with completion status."
+                f"Preserved best checkpoint at {best_checkpoint_path}."
             )
 
     plot_and_log_loss(

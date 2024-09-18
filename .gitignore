@@ -7,7 +7,7 @@ organiser.py
 
 __pycache__
 model_checkpoints/
-training_plots/
+train_eval_plots/
 transformer_epic_model.log
 wandb_cleanup.py
 

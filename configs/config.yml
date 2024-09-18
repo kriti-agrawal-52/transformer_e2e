@@ -3,7 +3,7 @@
 # --- CONTROL FLAGS ---
 
 SHOULD_TRAIN_SINGLE_RUN: True # Set to true to run the single run (where we have 1 set of hyperparameters)
-SHOULD_HYPERPARAMETER_SEARCH: False # Set to true for hyperparameter searching
+SHOULD_HYPERPARAMETER_SEARCH: True # Set to true for hyperparameter searching
 ALWAYS_LOG_ARTIFACTS: True # Flag for if we want to save our model as wandb artefact
 
 # --- Environment ---
@@ -19,16 +19,16 @@ TOKENIZER_NAME: "gpt2"
 # This limits the dataset size for faster iteration, especially for tuning.
 RAW_TEXT_LIMIT: 10000000 # 10 Million characters
 
-RUN_MODE: "single" # single or grid
+RUN_MODE: "grid" # single or grid
 
 # --- TRAINING HYPERPARAMETERS FOR SINGLE RUN TRAINING---
-BATCH_SIZE: 32
-CONTEXT_WINDOW: 256
-CHANNEL_DIM: 512
-NUM_HEADS: 8
-NUM_LAYERS: 8
+BATCH_SIZE: 12 #32
+CONTEXT_WINDOW: 16 #256
+CHANNEL_DIM: 128 #512
+NUM_HEADS: 4 #8
+NUM_LAYERS: 3 #8
 LEARNING_RATE: 3e-4
-TRAINING_STEPS: 30000
+TRAINING_STEPS: 1000 #30000
 
 MIN_DELTA: 0.001 # we should not make this value too small because we want to have meaningful improvement in our validation loss
 EVAL_ITERS_VAL: 10 # for calculating evaluation loss, we randomly take EVAL_ITERS_VAL batches of validation set, and take their average loss.

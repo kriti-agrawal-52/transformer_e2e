@@ -8,26 +8,104 @@ import logging
 import threading
 import json
 from datetime import datetime
+import sys
 
 from src.models.transformer import TransformerModel
 from src.data.processing import PreprocessingTraining
-from src.training.utils import train_loop, load_checkpoint, evaluate_validation_loss
+from src.training.utils import train_loop, load_checkpoint, evaluate_validation_loss, get_checkpoint_paths
 
 logger = logging.getLogger(__name__)
 
 
-def generate_run_timestamp():
+
+def generate_smart_run_id(base_run_id, cfg):
     """
-    Generate a consistent timestamp string for run IDs.
+    Intelligent run ID generation that balances resumption with conflict avoidance.
     
-    Why timestamps in run IDs?
-    - Prevents W&B run ID conflicts (HTTP 409 errors)
-    - Makes each run globally unique without database lookups
-    - Groups related hyperparameter search runs by execution time
-    - Provides clear traceability of when experiments were conducted
-    - Eliminates need for manual run clearing or suffix incrementation
+    Logic:
+    1. Check if base_run_id was completed → create new run with incremental suffix
+    2. If not completed but has checkpoints → resume with same ID (interrupted run)
+    3. If no completion status and no checkpoints → use base_run_id (fresh start)
+    4. If suffix runs exist, find next available or resume interrupted suffix run
+    
+    Args:
+        base_run_id: Base run identifier (e.g., "single_bs16_cw128_lr1e-04")
+        cfg: Configuration object
+        
+    Returns:
+        tuple: (final_run_id, is_resuming_flag)
     """
-    return datetime.now().strftime("%Y%m%d_%H%M")  # YYYYMMDD_HHMM format
+    
+    def has_checkpoints(run_id):
+        """Check if checkpoints exist for a given run_id"""
+        if not os.path.exists(cfg.MODEL_CHECKPOINTS_DIR):
+            return False
+            
+        checkpoint_paths = get_checkpoint_paths(run_id, cfg)
+        
+        return os.path.exists(checkpoint_paths['latest']) or os.path.exists(checkpoint_paths['best'])
+    
+    def is_completed(run_id):
+        """Check if a run was already completed"""
+        completion_status = load_completion_status(run_id, cfg)
+        return completion_status is not None and completion_status.get("completed", False)
+    
+    # Check base run first
+    if is_completed(base_run_id):
+        logger.info(f"Run {base_run_id} was already completed. Creating new run with suffix.")
+    elif has_checkpoints(base_run_id):
+        logger.info(f"Found checkpoints for incomplete run {base_run_id}. Resuming interrupted training.")
+        return base_run_id, True
+    else:
+        # Fresh start - no completion status and no checkpoints
+        logger.info(f"No previous data for {base_run_id}. Starting fresh training.")
+        return base_run_id, False
+    
+    # Base run was completed or we need a suffix - find next available
+    suffix = 2
+    while suffix <= 999:  # Reasonable limit to prevent infinite loops
+        candidate_run_id = f"{base_run_id}_{suffix}"
+        
+        if is_completed(candidate_run_id):
+            logger.debug(f"Run {candidate_run_id} was already completed. Checking next suffix.")
+            suffix += 1
+            continue
+        elif has_checkpoints(candidate_run_id):
+            logger.info(f"Found checkpoints for incomplete run {candidate_run_id}. Resuming interrupted training.")
+            return candidate_run_id, True
+        else:
+            # Found available suffix
+            logger.info(f"Using new run ID: {candidate_run_id}")
+            return candidate_run_id, False
+    
+    # Fallback with timestamp if too many runs (unlikely)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    fallback_run_id = f"{base_run_id}_{timestamp}"
+    logger.warning(f"Many existing runs found. Using timestamp fallback: {fallback_run_id}")
+    return fallback_run_id, False
+
+
+def add_run_metadata(params, is_resuming=False):
+    """
+    Add chronological and resumption metadata to run parameters for W&B tracking.
+    
+    Args:
+        params: Dictionary of run parameters
+        is_resuming: Boolean indicating if this is a resumed run
+        
+    Returns:
+        Updated params dictionary with metadata
+    """
+    metadata = {
+        "created_timestamp": datetime.now().isoformat(),
+        "created_readable": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "is_resuming": is_resuming,
+        "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+    }
+    
+    # Add metadata to params
+    params["run_metadata"] = metadata
+    return params
 
 
 def save_completion_status(run_id, cfg, completion_info):
@@ -184,25 +262,17 @@ def wait_for_artifact_upload(artifact, timeout_sec=300):
 class TrainingManager:
     """Manages the complete training session end to end."""
 
-    def __init__(self, run_params, tokenizer, raw_text, cfg, is_single_run=True):
+    def __init__(self, run_params, tokenizer, raw_text, cfg):
         self.params = run_params
         self.tokenizer = tokenizer
         self.raw_text = raw_text
         self.cfg = cfg
-        self.is_single_run = is_single_run
         self.run_id = self.params["run_id"]
         self.device = torch.device(cfg.DEVICE)
 
-        bs = self.params["batch_size"]
-        cw = self.params["context_window"]
-        lr = self.params["learning_rate"]
-        base_filename = f"run_{self.run_id}_bs{bs}_cw{cw}_lr{lr:.0e}"
-        self.latest_ckpt_path = os.path.join(
-            self.cfg.MODEL_CHECKPOINTS_DIR, f"{base_filename}_latest.pt"
-        )
-        self.best_ckpt_path = os.path.join(
-            self.cfg.MODEL_CHECKPOINTS_DIR, f"{base_filename}_best.pt"
-        )
+        checkpoint_paths = get_checkpoint_paths(self.run_id, self.cfg, self.params)
+        self.latest_ckpt_path = checkpoint_paths['latest']
+        self.best_ckpt_path = checkpoint_paths['best']
 
     def _cleanup_checkpoints(self):
         """Removes local checkpoint files after successful upload."""
@@ -216,16 +286,26 @@ class TrainingManager:
                 logger.error(f"Error removing file {path}: {e}", exc_info=True)
 
     def run(self):
-        """Executes the entire training session."""
+        """Executes the entire training session with enhanced metadata logging."""
+        # Log enhanced metadata and resumption status
+        is_resuming = self.params.get("run_metadata", {}).get("is_resuming", False)
+        logger.info(f"{'Resuming' if is_resuming else 'Starting'} training run: {self.run_id}")
+        
         wandb.init(
             project=self.cfg.WANDB_PROJECT,
             name=self.params["name"],
             notes=self.params.get("notes", ""),
             tags=self.params.get("tags", []),
-            config=self.params,  # Log all run-specific params
+            config=self.params,  # Log all run-specific params including metadata
             id=self.run_id,
             resume="allow"
         )
+        
+        # Log creation info for better traceability
+        if "run_metadata" in self.params:
+            metadata = self.params["run_metadata"]
+            logger.info(f"Run created at: {metadata.get('created_readable', 'unknown')}")
+            logger.info(f"{'Resuming' if metadata.get('is_resuming', False) else 'Starting fresh'} - Python {metadata.get('python_version', 'unknown')}")
         
         # Check persistent completion status first
         completion_status = load_completion_status(self.run_id, self.cfg)
@@ -263,41 +343,12 @@ class TrainingManager:
             ).to(self.device)
             
             # Load checkpoint to resume training if it exists
-            start_step, opt_state, best_loss, was_completed = load_checkpoint(
+            start_step, opt_state, best_loss = load_checkpoint(
                 model, self.latest_ckpt_path, self.device
             )
 
-            # The was_completed flag from checkpoint is now only used for runs that haven't been cleaned up yet
-            # For cleaned up runs, we rely on the persistent completion status checked above
-            if was_completed:  # This handles cases where checkpoint still exists and is marked completed
-                logger.warning(
-                    f"Run {self.run_id} checkpoint indicates completion. This shouldn't happen if cleanup worked properly."
-                )
-                print(f"Run {self.run_id} was previously completed (from checkpoint). Skipping training.")
-                
-                # Save completion status for future reference and clean up
-                completion_info = {
-                    "reason": "found_completed_checkpoint",
-                    "final_step": start_step - 1,
-                    "final_best_loss": best_loss
-                }
-                save_completion_status(self.run_id, self.cfg, completion_info)
-                
-                # Handle best checkpoint loading
-                if os.path.exists(self.best_ckpt_path):
-                    best_checkpoint = torch.load(
-                        self.best_ckpt_path, map_location=self.device
-                    )
-                    model.load_state_dict(best_checkpoint["model_state_dict"])
-                    final_best_model_path = self.best_ckpt_path
-                else:
-                    logger.warning(
-                        f"Best model checkpoint {self.best_ckpt_path} not found for a completed run."
-                    )
-                    if wandb.run:
-                        wandb.finish()
-                    return None
-            elif (
+            # Check if target steps have already been exceeded
+            if (
                 start_step > self.params["steps"]
             ):  # This handles cases where a run was partially completed, but now the desired steps are less than what was already done.
                 logger.warning(
@@ -429,14 +480,14 @@ class TrainingManager:
                 return None  # Exit if there is no best model to work with
 
             # Only run post-training eval if it's a single run
-            if self.is_single_run:
+            if self.params.get("run_metadata", {}).get("is_resuming", False):
                 run_post_training_eval(
                     model, prep, final_best_model_path, self.cfg, self.device
                 )
 
             logged_artifact = None
             # Log artifact if it's a single run, or if ALWAYS_LOG_ARTIFACTS is true
-            if self.is_single_run or self.cfg.ALWAYS_LOG_ARTIFACTS:
+            if self.params.get("run_metadata", {}).get("is_resuming", False) or self.cfg.ALWAYS_LOG_ARTIFACTS:
                 logged_artifact = log_artifact(
                     final_best_model_path, self.run_id, self.params, self.cfg
                 )
@@ -460,6 +511,55 @@ class TrainingManager:
                         f"An error occurred during artifact cleanup: {e}", exc_info=True
                     )
 
+            # Handle training completion and cleanup
+            if completion_info and completion_info.get("completed_successfully"):
+                completion_reason = completion_info.get("completion_reason", "unknown")
+                final_step = completion_info.get("final_step", "unknown")
+                
+                logger.info(f"Training completed successfully ({completion_reason}) at step {final_step}")
+                
+                # Save persistent completion status
+                persistent_completion_info = {
+                    "completed": True,
+                    "completion_reason": completion_reason,
+                    "final_step": final_step,
+                    "completed_at": datetime.now().isoformat(),
+                    "best_val_loss": completion_info.get("final_best_loss"),
+                }
+                save_completion_status(self.run_id, self.cfg, persistent_completion_info)
+                
+                # Clean up local checkpoints for completed runs
+                # This enables the smart resumption logic to work correctly:
+                # - If checkpoints exist → interrupted run (should resume)
+                # - If no checkpoints exist → completed run (should create new run with suffix)
+                try:
+                    if os.path.exists(self.latest_ckpt_path):
+                        os.remove(self.latest_ckpt_path)
+                        logger.info(f"Cleaned up latest checkpoint: {self.latest_ckpt_path}")
+                        
+                    if os.path.exists(self.best_ckpt_path):
+                        os.remove(self.best_ckpt_path) 
+                        logger.info(f"Cleaned up best checkpoint: {self.best_ckpt_path}")
+                        
+                    logger.info("Local checkpoints cleaned up after successful completion.")
+                   
+                except Exception as e:
+                    logger.warning(f"Failed to clean up local checkpoints: {e}")
+                    # Don't fail the run due to cleanup issues
+            else:
+                logger.info("Training did not complete successfully - preserving checkpoints for resumption.")
+
+            # Log final completion status to W&B
+            if wandb.run:
+                final_status = "completed_successfully" if completion_info and completion_info.get("completed_successfully") else "interrupted"
+                completion_time = datetime.now()
+                wandb.log({
+                    "final_run_status": final_status,
+                    "final_step": completion_info.get("final_step") if completion_info else last_step_reached,
+                    "completion_time_unix": completion_time.timestamp(),  # Unix timestamp for easy sorting/filtering
+                    "completion_time_readable": completion_time.strftime("%Y-%m-%d %H:%M:%S")  # Human readable
+                })
+
         except Exception as e:
             logger.critical(f"Critical error in run {self.run_id}: {e}", exc_info=True)
             print(f"CRITICAL ERROR in run {self.run_id}. See logs.")
@@ -471,21 +571,12 @@ class TrainingManager:
 
 
 def run_single_training(raw_text, tokenizer, cfg):
-    """configures and runs a training run with fixed hyperparameters, ie a single phase"""
-    logger.info("--- Starting Single Training Run ---")
-    cfg.LEARNING_RATE = float(cfg.LEARNING_RATE)
-    # Generate unique run ID with timestamp to avoid W&B conflicts and ensure traceability
-    timestamp = generate_run_timestamp()
-    run_id = (
-        f"single_bs{cfg.BATCH_SIZE}_cw{cfg.CONTEXT_WINDOW}_lr{cfg.LEARNING_RATE:.0e}_{timestamp}"
-    )
-    # base dropout rate
-    base_dropout = getattr(cfg, "DROPOUT_RATE", 0.1)  # Default to 0.1 if not in cfg
-    final_multiplier = getattr(
-        cfg, "FINAL_DROPOUT_MULTIPLIER", None
-    )  # Default to None if not in cfg
-    max_dropout = getattr(cfg, "MAX_DROPOUT_VAL", 0.5)
-    single_params = {
+    """Initializes and runs a single training session."""
+    base_run_id = "_".join(cfg.WANDB_RUN_PREFIX)
+    run_id, is_resuming = generate_smart_run_id(base_run_id, cfg)
+    
+    # Base parameters for this run
+    run_params = {
         "batch_size": cfg.BATCH_SIZE,
         "context_window": cfg.CONTEXT_WINDOW,
         "learning_rate": cfg.LEARNING_RATE,
@@ -495,45 +586,68 @@ def run_single_training(raw_text, tokenizer, cfg):
         "channel_dim": cfg.CHANNEL_DIM,
         "num_heads": cfg.NUM_HEADS,
         "num_layers": cfg.NUM_LAYERS,
-        "dropout_rate": base_dropout,
-        "final_dropout_multiplier": final_multiplier,
-        "max_dropout_val": max_dropout,
-        "name": f"{cfg.WANDB_RUN_PREFIX[0]}_{run_id}",  # Added run_id to name
-        "notes": "Single training run with standard parameters.",
-        "tags": ["single_run", cfg.DATASET_NAME, "transformer"],
+        "dropout_rate": getattr(cfg, "DROPOUT_RATE", 0.1),
+        "final_dropout_multiplier": getattr(cfg, "FINAL_DROPOUT_MULTIPLIER", None),
+        "max_dropout_val": getattr(cfg, "MAX_DROPOUT_VAL", 0.5),
+        "name": f"{cfg.WANDB_RUN_PREFIX[0]}_{run_id}",
+        "notes": f"Single training run ({'resumed' if is_resuming else 'new'}) with standard parameters.",
+        "tags": ["single_run", cfg.DATASET_NAME, "transformer"] + (["resumed"] if is_resuming else ["fresh_start"]),
         "run_id": run_id,
     }
-    manager = TrainingManager(
-        single_params, tokenizer, raw_text, cfg, is_single_run=True
-    )
+    
+    # Add metadata for W&B
+    run_params = add_run_metadata(run_params, is_resuming)
+
+    # Initialize and run the training manager
+    manager = TrainingManager(run_params, tokenizer, raw_text, cfg)
     manager.run()
-    logger.info("--- Single Training Run Finished ---")
 
 
 def run_hyperparameter_search(raw_text, tokenizer, cfg):
-    """Configures and runs multiple training sessions for tuning."""
+    """Configures and runs multiple training sessions for tuning with smart resumption logic."""
     logger.info("--- Starting Hyperparameter Search ---")
     results = []
     
-    # Generate timestamp once for the entire sweep to group related runs
-    # All runs in this hyperparameter search will share the same timestamp,
-    # making it easy to identify which runs belong to the same experiment batch
-    timestamp = generate_run_timestamp()
+    # Generate a sweep timestamp for grouping related runs
+    sweep_timestamp = datetime.now().strftime("%Y%m%d_%H%M")  # YYYYMMDD_HHMM format
+    logger.info(f"Hyperparameter sweep started at: {sweep_timestamp}")
     
     base_dropout = getattr(cfg, "DROPOUT_RATE", 0.1)  # Default to 0.1 if not in cfg
     final_multiplier = getattr(
         cfg, "FINAL_DROPOUT_MULTIPLIER", None
     )  # Default to None if not in cfg
     max_dropout = getattr(cfg, "MAX_DROPOUT_VAL", 0.5)
+    
     for bs in cfg.HP_SEARCH_BATCH_SIZES:
         for cw in cfg.HP_SEARCH_CONTEXT_WINDOWS:
             for lr in cfg.HP_SEARCH_LRS:
-                # Create consistent run ID format with timestamp suffix for uniqueness
-                # Format: tune_bs{batch_size}_cw{context_window}_lr{learning_rate}_{timestamp}
-                run_id = f"tune_bs{bs}_cw{cw}_lr{lr:.0e}_{timestamp}"
-                run_name = f"{cfg.WANDB_RUN_PREFIX[1]}_bs{bs}_cw{cw}_lr{lr:.0e}_{timestamp}"
-
-                logger.info(f"Starting Tuning Run: {run_name}")
+                # Ensure lr is a float for string formatting
+                lr = float(lr)
+                
+                # Generate base run ID for this hyperparameter combination
+                base_run_id = f"tune_bs{bs}_cw{cw}_lr{lr:.0e}"
+                
+                # Use smart run ID generation (but for sweeps, usually create new runs)
+                # We temporarily update cfg for checkpoint checking
+                original_cfg_values = {}
+                for attr in ['BATCH_SIZE', 'CONTEXT_WINDOW', 'LEARNING_RATE']:
+                    if hasattr(cfg, attr):
+                        original_cfg_values[attr] = getattr(cfg, attr)
+                
+                # Temporarily set cfg values for checkpoint checking
+                cfg.BATCH_SIZE = bs
+                cfg.CONTEXT_WINDOW = cw  
+                cfg.LEARNING_RATE = lr
+                
+                run_id, is_resuming = generate_smart_run_id(base_run_id, cfg)
+                
+                # Restore original cfg values
+                for attr, value in original_cfg_values.items():
+                    setattr(cfg, attr, value)
+                
+                run_name = f"{cfg.WANDB_RUN_PREFIX[1]}_{run_id}"
+                logger.info(f"Starting Tuning Run: {run_name} ({'resumed' if is_resuming else 'new'})")
+                
                 tune_params = {
                     "batch_size": bs,
                     "context_window": cw,
@@ -548,10 +662,15 @@ def run_hyperparameter_search(raw_text, tokenizer, cfg):
                     "final_dropout_multiplier": final_multiplier,
                     "max_dropout_val": max_dropout,
                     "name": run_name,
-                    "notes": f"Tuning: BS={bs}, CW={cw}, LR={lr}",
-                    "tags": ["tuning", cfg.DATASET_NAME, "transformer"],
+                    "notes": f"Tuning ({'resumed' if is_resuming else 'new'}): BS={bs}, CW={cw}, LR={lr}",
+                    "tags": ["tuning", cfg.DATASET_NAME, "transformer", f"sweep_{sweep_timestamp}"] + (["resumed"] if is_resuming else ["fresh_start"]),
                     "run_id": run_id,
+                    "sweep_timestamp": sweep_timestamp,  # Group related sweep runs
                 }
+                
+                # Add chronological and resumption metadata
+                tune_params = add_run_metadata(tune_params, is_resuming)
+                
                 manager = TrainingManager(tune_params, tokenizer, raw_text, cfg)
                 best_ckpt = manager.run()
                 results.append({"params": tune_params, "best_ckpt": best_ckpt})

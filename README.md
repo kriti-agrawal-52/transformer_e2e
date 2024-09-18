@@ -50,18 +50,25 @@ python -m transformer_e2e.scripts.train --mode single --config transformer_e2e/c
   python -m transformer_e2e.scripts.train --mode single --config transformer_e2e/configs/config.yml
   ```
 - The script will automatically detect and resume from the latest checkpoint (no extra arguments needed).
-- **Completion Tracking**: The system tracks completed training runs independently of checkpoint files, so it will correctly skip re-training runs that have already completed (either by finishing all steps or early stopping).
+- **Completion Tracking**: The system tracks completed training runs using persistent JSON metadata files, so it will correctly skip re-training runs that have already completed (either by finishing all steps or early stopping).
 
 ### How Completion Tracking Works
 
-The system uses persistent metadata files to track training completion:
+The system uses a clean, single-source completion tracking approach:
 
-1. **During Training**: When training completes successfully, metadata is saved to `model_checkpoints/completion_tracking/<run_id>_completed.json`
-2. **After Upload**: Local checkpoint files are deleted after successful W&B artifact upload
-3. **On Resume**: The system checks completion metadata BEFORE attempting to load checkpoints
-4. **Automatic Skip**: If a run was already completed, training is skipped entirely
+1. **During Training**: Checkpoints contain only model state (no completion flags)
+2. **On Completion**: Metadata is saved to `model_checkpoints/completion_tracking/<run_id>_completed.json`
+3. **After Upload**: Local checkpoint files are deleted after successful W&B artifact upload
+4. **On Resume**: The system checks completion metadata BEFORE attempting to load checkpoints
+5. **Smart Resumption**: Uses checkpoint file existence (not content) to determine if a run was interrupted
+6. **Automatic Skip**: If completion metadata exists, training is skipped entirely
 
-This prevents the circular dependency where completion status was stored in checkpoint files that got deleted upon completion.
+This prevents conflicts between multiple completion tracking systems and provides a clean separation of concerns:
+
+- **JSON metadata**: Tracks completion status
+- **Checkpoint existence**: Determines resumption vs. new run
+
+For detailed technical information about the smart resumption logic, see [Training and Resumption Documentation](docs/training_and_resumption.md).
 
 ### Hyperparameter Sweep
 
