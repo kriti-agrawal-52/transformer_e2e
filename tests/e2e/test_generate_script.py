@@ -30,7 +30,7 @@ class TestGenerateScript:
         
         assert result.returncode == 0
         assert "usage:" in result.stdout.lower()
-        assert "--config" in result.stdout
+        assert "--gen_config" in result.stdout
     
     @pytest.mark.e2e
     def test_generate_script_with_invalid_config(self):
