@@ -152,7 +152,7 @@ def load_completion_status(run_id, cfg):
         return None
 
 
-def run_post_training_eval(model, prep, best_model_path, cfg, device):
+def run_post_training_eval(model, prep, best_model_path, run_params, device):
     """Loads the best model and runs test evaluation and text generation."""
     logger.info("Running post-training evaluations...")
     try:
@@ -161,6 +161,9 @@ def run_post_training_eval(model, prep, best_model_path, cfg, device):
         model.load_state_dict(best_checkpoint["model_state_dict"])
         logger.info(f"Loaded best model from {best_model_path} for final eval.")
 
+        # Extract system-level configs from run_params
+        cfg = run_params["cfg"]
+        
         # Evaluate on test set
         test_loss = evaluate_validation_loss(
             model, prep, device, "test", cfg.EVAL_ITERS_TEST
@@ -175,12 +178,15 @@ def run_post_training_eval(model, prep, best_model_path, cfg, device):
         logger.error(f"Post-training evaluation failed: {e}", exc_info=True)
 
 
-def log_artifact(checkpoint_path, run_id, run_params, cfg):
+def log_artifact(checkpoint_path, run_id, run_params):
     """Logs the best model checkpoint as a W&B Artifact."""
     if not os.path.exists(checkpoint_path):
         logger.warning(f"Checkpoint {checkpoint_path} not found for artifact logging.")
         return
 
+    # Extract system-level configs from run_params
+    cfg = run_params["cfg"]
+    
     logger.info(f"Logging model artifact from {checkpoint_path}")
     try:
         artifact_name = f"{cfg.WANDB_PROJECT}_model-{run_id}"
@@ -264,6 +270,8 @@ class TrainingManager:
 
     def __init__(self, run_params, tokenizer, raw_text, cfg):
         self.params = run_params
+        # Include cfg in run_params for system-level configurations
+        self.params["cfg"] = cfg
         self.tokenizer = tokenizer
         self.raw_text = raw_text
         self.cfg = cfg
@@ -439,7 +447,7 @@ class TrainingManager:
                     mode="min",
                     factor=0.5,
                     patience=5,
-                    threshold=self.cfg.MIN_DELTA,
+                    threshold=self.params["cfg"].MIN_DELTA,
                 )
 
                 training_result = train_loop(
@@ -447,8 +455,7 @@ class TrainingManager:
                     prep,
                     optimizer,
                     scheduler,
-                    self.cfg,
-                    self.params,  # Pass run_params
+                    self.params,  # Pass run_params (contains cfg and all hyperparameters)
                     self.device,
                     start_step,
                     opt_state,
@@ -482,14 +489,14 @@ class TrainingManager:
             # Only run post-training eval if it's a single run
             if self.params.get("run_metadata", {}).get("is_resuming", False):
                 run_post_training_eval(
-                    model, prep, final_best_model_path, self.cfg, self.device
+                    model, prep, final_best_model_path, self.params, self.device
                 )
 
             logged_artifact = None
             # Log artifact if it's a single run, or if ALWAYS_LOG_ARTIFACTS is true
             if self.params.get("run_metadata", {}).get("is_resuming", False) or self.cfg.ALWAYS_LOG_ARTIFACTS:
                 logged_artifact = log_artifact(
-                    final_best_model_path, self.run_id, self.params, self.cfg
+                    final_best_model_path, self.run_id, self.params
                 )
 
             if logged_artifact:  # If artifact was logged successfully on wandb, we can clear up local checkpoints

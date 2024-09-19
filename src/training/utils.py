@@ -96,11 +96,19 @@ def load_checkpoint(model, checkpoint_path, device):
 
 
 def plot_and_log_loss(
-    train_losses, val_loss_dict, val_check_every, last_step, b_s, c_w, l_r, cfg, run_id
+    train_losses, val_loss_dict, run_params, last_step, run_id
 ):
     """Helper to plot loss curves and log the image to W&B."""
     if not train_losses or not val_loss_dict:
         return
+    
+    # Extract necessary parameters from run_params
+    val_check_every = run_params["val_check_every"]
+    b_s = run_params["batch_size"]
+    c_w = run_params["context_window"]
+    l_r = run_params["learning_rate"]
+    cfg = run_params["cfg"]  # System-level configs like directories
+    
     plt.figure(figsize=(12, 7))
     plt.plot(train_losses, label="Training Loss", color="lightblue", alpha=0.7, lw=1)
 
@@ -143,7 +151,7 @@ def plot_and_log_loss(
 
     plot_path = os.path.join(
         cfg.LOSS_PLOT_DIRECTORY, f"loss_run_{run_id}_bs{b_s}_cw{c_w}_lr{l_r:.0e}.png"
-    )  # this ensures that plots for various hyperparameter search runs are saved separately and are not overwritten
+    )
     plt.savefig(plot_path)
 
     wandb.log(
@@ -213,8 +221,7 @@ def train_loop(
     prep_obj,
     optimizer,
     scheduler,
-    cfg,
-    run_params,  # pass the specific run's parameters
+    run_params,  # Single source of truth for all hyperparameters
     device,
     start_step=1,
     initial_optimizer_state=None,
@@ -235,15 +242,16 @@ def train_loop(
     stale_checks = 0
     run_id = wandb.run.id  # use current wandb id
 
-    # get run-specific config from wandb.run.config
-    # this works whether we are in the single run or a hyperparameter search run
-    # current_config = wandb.run.config
-    b_s = run_params["batch_size"]
-    c_w = run_params["context_window"]
-    l_r = run_params["learning_rate"]
+    # Extract all hyperparameters from run_params (single source of truth)
     steps = run_params["steps"]
     val_check_every = run_params["val_check_every"]
     patience = run_params["patience"]
+    
+    # System-level configurations (extracted once from cfg passed in run_params)
+    cfg = run_params["cfg"]  # System configs like directories
+    eval_iters_val = cfg.EVAL_ITERS_VAL
+    min_successful_val_batch_ratio = cfg.MIN_SUCCESSFUL_VAL_BATCH_RATIO
+    min_delta = cfg.MIN_DELTA
 
     # Define checkpoint paths
     # This ensures that checkpoints during runs do not get overwritten when we are doing hyperparameter search
@@ -296,8 +304,8 @@ def train_loop(
                         prep_obj,
                         device,
                         split="validation",
-                        eval_iters=cfg.EVAL_ITERS_VAL,
-                        min_successful_ratio=cfg.MIN_SUCCESSFUL_VAL_BATCH_RATIO,
+                        eval_iters=eval_iters_val,
+                        min_successful_ratio=min_successful_val_batch_ratio,
                     )
                 except ValidationLossComputationError as e:
                     logger.critical(f"Validation failed: {e}")
@@ -330,7 +338,7 @@ def train_loop(
                         latest_checkpoint_path,
                     )
 
-                if val_loss < best_val_loss - cfg.MIN_DELTA:
+                if val_loss < best_val_loss - min_delta:
                     best_val_loss = val_loss
                     stale_checks = 0
                     # If the model has improved, we save its state as the new 'best' checkpoint.
@@ -398,15 +406,12 @@ def train_loop(
                 f"Preserved best checkpoint at {best_checkpoint_path}."
             )
 
+    # Plot and log loss with simplified parameters
     plot_and_log_loss(
         train_losses,
         val_loss_dict,
-        val_check_every,
+        run_params,
         last_step,
-        b_s,
-        c_w,
-        l_r,
-        cfg,
         run_id,
     )
     

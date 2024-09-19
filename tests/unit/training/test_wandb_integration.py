@@ -72,9 +72,9 @@ def test_wandb_artifact_creation_and_upload():
     
     checkpoint_path = "/tmp/test_checkpoint.pt"
     run_id = "test-run-123"
-    run_params = {"lr": 0.001, "batch_size": 32}
     
     mock_config = SimpleNamespace(WANDB_PROJECT="test-project")
+    run_params = {"lr": 0.001, "batch_size": 32, "cfg": mock_config}
     
     with patch("wandb.Artifact") as mock_artifact_class, \
          patch("wandb.log_artifact") as mock_log_artifact, \
@@ -85,7 +85,7 @@ def test_wandb_artifact_creation_and_upload():
         mock_artifact_class.return_value = mock_artifact
         
         # Test artifact creation
-        artifact = log_artifact(checkpoint_path, run_id, run_params, mock_config)
+        artifact = log_artifact(checkpoint_path, run_id, run_params)
         
         # Verify artifact was created with correct parameters
         mock_artifact_class.assert_called_once_with(
@@ -195,16 +195,16 @@ def test_error_handling_in_wandb_operations():
         
         checkpoint_path = "/tmp/test_checkpoint.pt"
         run_id = "test-run-123"
-        run_params = {"lr": 0.001}
         mock_config = SimpleNamespace(WANDB_PROJECT="test-project")
+        run_params = {"lr": 0.001, "cfg": mock_config}
         
         # Should return None on failure
-        result = log_artifact(checkpoint_path, run_id, run_params, mock_config)
+        result = log_artifact(checkpoint_path, run_id, run_params)
         assert result is None
     
     # Test missing checkpoint file
     with patch("os.path.exists", return_value=False):
-        result = log_artifact("/nonexistent/path.pt", "run-123", {}, mock_config)
+        result = log_artifact("/nonexistent/path.pt", "run-123", {"cfg": mock_config})
         assert result is None
 
 
