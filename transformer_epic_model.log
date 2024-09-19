@@ -1076,3 +1076,115 @@ ValueError: Unknown format code 'e' for object of type 'str'
 2025-06-10 03:36:59,109 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_bs8_cw64_lr3e-04_best.pt at step 325
 2025-06-10 03:36:59,116 - src.training.utils - INFO -  New Best Model (Val: 7.2688)
 2025-06-10 03:37:02,141 - __main__ - INFO - Training process finished.
+2025-06-10 15:48:24,082 - __main__ - INFO - Starting training process with mode: single
+2025-06-10 15:48:24,086 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-10 15:48:35,514 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-10 15:48:35,728 - src.data.processing - INFO - Truncated wikitext to 10000000 characters for CPU training.
+2025-06-10 15:48:35,728 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-10 15:48:36,925 - __main__ - CRITICAL - Unhandled error in single run: Unknown format code 'e' for object of type 'str'
+Traceback (most recent call last):
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/scripts/train.py", line 68, in main
+    run_single_training(raw_text, tokenizer, cfg)
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/src/training/manager.py", line 583, in run_single_training
+    run_id, is_resuming = generate_smart_run_id(base_run_id, cfg)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/src/training/manager.py", line 56, in generate_smart_run_id
+    elif has_checkpoints(base_run_id):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/src/training/manager.py", line 44, in has_checkpoints
+    checkpoint_paths = get_checkpoint_paths(run_id, cfg)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/src/training/utils.py", line 36, in get_checkpoint_paths
+    lr = f"{cfg.LEARNING_RATE:.0e}" if hasattr(cfg, 'LEARNING_RATE') else "unknown"
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Unknown format code 'e' for object of type 'str'
+2025-06-10 15:48:36,928 - __main__ - INFO - Training process finished.
+2025-06-10 16:01:03,966 - __main__ - INFO - Starting training process with mode: single
+2025-06-10 16:01:03,966 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-10 16:01:16,980 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-10 16:01:17,527 - src.data.processing - INFO - Truncated wikitext to 10000000 characters for CPU training.
+2025-06-10 16:01:17,527 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-10 16:01:19,801 - src.training.manager - INFO - No previous data for transformer_e2e_single_run__transformer_e2e_sweep_. Starting fresh training.
+2025-06-10 16:01:19,805 - src.training.manager - INFO - Starting training run: transformer_e2e_single_run__transformer_e2e_sweep_
+2025-06-10 16:01:23,005 - src.training.manager - INFO - Run created at: 2025-06-10 16:01:19
+2025-06-10 16:01:23,006 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 16:01:23,106 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 16:01:57,592 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 16:01:57,840 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 16:01:57,919 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 16:01:58,035 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 16:01:58,041 - src.training.manager - CRITICAL - Critical error in run transformer_e2e_single_run__transformer_e2e_sweep_: '<=' not supported between instances of 'float' and 'str'
+Traceback (most recent call last):
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/src/training/manager.py", line 435, in run
+    optimizer = optim.AdamW(
+                ^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/.venv/lib/python3.11/site-packages/torch/optim/adamw.py", line 28, in __init__
+    if not 0.0 <= lr:
+           ^^^^^^^^^
+TypeError: '<=' not supported between instances of 'float' and 'str'
+2025-06-10 16:02:00,000 - __main__ - INFO - Training process finished.
+2025-06-10 16:04:51,556 - __main__ - INFO - Starting training process with mode: single
+2025-06-10 16:04:51,557 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-10 16:05:03,212 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-10 16:05:03,591 - src.data.processing - INFO - Truncated wikitext to 10000000 characters for CPU training.
+2025-06-10 16:05:03,591 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-10 16:05:05,006 - src.training.manager - INFO - No previous data for transformer_e2e_single_run__transformer_e2e_sweep_. Starting fresh training.
+2025-06-10 16:05:05,007 - src.training.manager - INFO - Starting training run: transformer_e2e_single_run__transformer_e2e_sweep_
+2025-06-10 16:05:07,916 - src.training.manager - INFO - Run created at: 2025-06-10 16:05:05
+2025-06-10 16:05:07,916 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 16:05:07,942 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 16:05:34,201 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 16:05:34,481 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 16:05:34,559 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 16:05:34,698 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 16:05:38,135 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 16:06:39,695 - src.training.utils - INFO - [Step 100/1000] Train: 7.6743, Val: 8.0091
+2025-06-10 16:06:41,304 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 100
+2025-06-10 16:06:43,731 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt at step 100
+2025-06-10 16:06:43,732 - src.training.utils - INFO -  New Best Model (Val: 8.0091)
+2025-06-10 16:07:51,399 - src.training.utils - INFO - [Step 200/1000] Train: 7.8059, Val: 7.8777
+2025-06-10 16:07:52,969 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 200
+2025-06-10 16:07:55,131 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt at step 200
+2025-06-10 16:07:55,133 - src.training.utils - INFO -  New Best Model (Val: 7.8777)
+2025-06-10 16:08:40,771 - src.training.utils - INFO - [Step 300/1000] Train: 7.6911, Val: 7.5657
+2025-06-10 16:08:41,528 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 300
+2025-06-10 16:08:42,568 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt at step 300
+2025-06-10 16:08:42,569 - src.training.utils - INFO -  New Best Model (Val: 7.5657)
+2025-06-10 16:10:10,721 - src.training.utils - INFO - [Step 400/1000] Train: 7.4308, Val: 7.5037
+2025-06-10 16:10:12,341 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 400
+2025-06-10 16:10:14,718 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt at step 400
+2025-06-10 16:10:14,719 - src.training.utils - INFO -  New Best Model (Val: 7.5037)
+2025-06-10 16:11:35,624 - src.training.utils - INFO - [Step 500/1000] Train: 7.1834, Val: 7.1771
+2025-06-10 16:11:37,526 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 500
+2025-06-10 16:11:39,508 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt at step 500
+2025-06-10 16:11:39,510 - src.training.utils - INFO -  New Best Model (Val: 7.1771)
+2025-06-10 16:13:04,451 - src.training.utils - INFO - [Step 600/1000] Train: 7.1719, Val: 7.1416
+2025-06-10 16:13:06,063 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 600
+2025-06-10 16:13:08,955 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt at step 600
+2025-06-10 16:13:08,957 - src.training.utils - INFO -  New Best Model (Val: 7.1416)
+2025-06-10 16:14:32,773 - src.training.utils - INFO - [Step 700/1000] Train: 7.1614, Val: 7.0914
+2025-06-10 16:14:34,336 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 700
+2025-06-10 16:14:36,515 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt at step 700
+2025-06-10 16:14:36,521 - src.training.utils - INFO -  New Best Model (Val: 7.0914)
+2025-06-10 16:15:59,950 - src.training.utils - INFO - [Step 800/1000] Train: 6.6847, Val: 7.2729
+2025-06-10 16:16:00,913 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 800
+2025-06-10 16:16:00,914 - src.training.utils - INFO -  No improvement: 1/50
+2025-06-10 16:16:32,479 - src.training.utils - INFO - [Step 900/1000] Train: 6.7749, Val: 7.2147
+2025-06-10 16:16:33,605 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 900
+2025-06-10 16:16:33,606 - src.training.utils - INFO -  No improvement: 2/50
+2025-06-10 16:17:05,089 - src.training.utils - INFO - [Step 1000/1000] Train: 6.6504, Val: 7.0978
+2025-06-10 16:17:05,091 - src.training.utils - INFO -  No improvement: 3/50
+2025-06-10 16:17:05,092 - src.training.utils - INFO - Training completed at step 1000. Saving final checkpoint.
+2025-06-10 16:17:06,018 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt at step 1000
+2025-06-10 16:17:07,187 - src.training.utils - INFO - Preserved best checkpoint at model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt.
+2025-06-10 16:17:08,944 - src.training.utils - INFO - Loss curve saved to train_eval_plots/loss_run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04.png and logged.
+2025-06-10 16:17:08,977 - src.training.manager - INFO - Saved completion status to model_checkpoints/completion_tracking/transformer_e2e_single_run__transformer_e2e_sweep__completed.json
+2025-06-10 16:17:08,977 - src.training.manager - INFO - Logging model artifact from model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt
+2025-06-10 16:17:10,713 - src.training.manager - INFO - Logged artifact: Transformer_e2e_model-transformer_e2e_single_run__transformer_e2e_sweep_
+2025-06-10 16:17:10,714 - src.training.manager - INFO - Waiting for artifact upload to complete (timeout: 300s)...
+2025-06-10 16:17:34,184 - src.training.manager - INFO - Artifact upload finished.
+2025-06-10 16:17:34,185 - src.training.manager - INFO - Cleaning up local checkpoint files...
+2025-06-10 16:17:34,247 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_latest.pt
+2025-06-10 16:17:34,329 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt
+2025-06-10 16:17:34,330 - src.training.manager - INFO - Training did not complete successfully - preserving checkpoints for resumption.
+2025-06-10 16:17:36,544 - __main__ - INFO - Training process finished.

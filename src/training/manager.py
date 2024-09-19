@@ -586,7 +586,7 @@ def run_single_training(raw_text, tokenizer, cfg):
     run_params = {
         "batch_size": cfg.BATCH_SIZE,
         "context_window": cfg.CONTEXT_WINDOW,
-        "learning_rate": cfg.LEARNING_RATE,
+        "learning_rate": float(cfg.LEARNING_RATE),  # Ensure it's always a float
         "steps": cfg.TRAINING_STEPS,
         "val_check_every": cfg.VALIDATION_CHECK_EVERY,
         "patience": cfg.EARLY_STOPPING_PATIENCE,

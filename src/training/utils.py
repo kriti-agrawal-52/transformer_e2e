@@ -32,8 +32,18 @@ def get_checkpoint_paths(run_id, cfg, run_params=None):
     else:
         # Extract from cfg (used by generate_smart_run_id)
         bs = cfg.BATCH_SIZE if hasattr(cfg, 'BATCH_SIZE') else "unknown"
-        cw = cfg.CONTEXT_WINDOW if hasattr(cfg, 'CONTEXT_WINDOW') else "unknown" 
-        lr = f"{cfg.LEARNING_RATE:.0e}" if hasattr(cfg, 'LEARNING_RATE') else "unknown"
+        cw = cfg.CONTEXT_WINDOW if hasattr(cfg, 'CONTEXT_WINDOW') else "unknown"
+        
+        # Handle learning rate - it might be string or numeric in cfg
+        if hasattr(cfg, 'LEARNING_RATE'):
+            lr_val = cfg.LEARNING_RATE
+            # If it's already a string, use it as-is, otherwise format as scientific notation
+            if isinstance(lr_val, str):
+                lr = lr_val
+            else:
+                lr = f"{lr_val:.0e}"
+        else:
+            lr = "unknown"
     
     # Format learning rate consistently
     if isinstance(lr, (int, float)):
