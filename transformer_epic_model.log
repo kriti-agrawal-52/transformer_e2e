@@ -1402,3 +1402,398 @@ ValueError: Unknown format code 'e' for object of type 'str'
 2025-06-10 17:07:23,451 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_best.pt at step 100
 2025-06-10 17:07:23,452 - src.training.utils - INFO -  New Best Model (Val: 7.8798)
 2025-06-10 17:07:29,421 - __main__ - INFO - Training process finished.
+2025-06-10 17:35:46,292 - __main__ - INFO - Starting training process with mode: sweep
+2025-06-10 17:35:46,293 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-10 17:35:58,078 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-10 17:35:58,604 - src.data.processing - INFO - Truncated wikitext to 10000000 characters for CPU training.
+2025-06-10 17:35:58,604 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-10 17:36:00,486 - src.training.manager - INFO - --- Starting Hyperparameter Search ---
+2025-06-10 17:36:00,487 - src.training.manager - INFO - Hyperparameter sweep started at: 20250610_1736
+2025-06-10 17:36:00,489 - src.training.manager - INFO - Found completion status for run tune_bs8_cw32_lr3e-04: early_stopping at step 1200
+2025-06-10 17:36:00,489 - src.training.manager - INFO - Run tune_bs8_cw32_lr3e-04 was already completed. Creating new run with suffix.
+2025-06-10 17:36:00,492 - src.training.manager - INFO - Found completion status for run tune_bs8_cw32_lr3e-04_2: early_stopping at step 1450
+2025-06-10 17:36:00,492 - src.training.manager - INFO - Found checkpoints for incomplete run tune_bs8_cw32_lr3e-04_3. Resuming interrupted training.
+2025-06-10 17:36:00,493 - src.training.manager - INFO - Starting Tuning Run: transformer_e2e_sweep__tune_bs8_cw32_lr3e-04_3 (resumed)
+2025-06-10 17:36:00,493 - src.training.manager - INFO - Resuming training run: tune_bs8_cw32_lr3e-04_3
+2025-06-10 17:36:03,445 - src.training.manager - INFO - Run created at: 2025-06-10 17:36:00
+2025-06-10 17:36:03,445 - src.training.manager - INFO - Resuming - Python 3.11.8
+2025-06-10 17:36:03,463 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 17:36:24,196 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 17:36:24,459 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 17:36:24,542 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 17:36:24,908 - src.training.utils - INFO - Found checkpoint: model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_latest.pt. Attempting to resume.
+2025-06-10 17:36:25,510 - src.training.utils - INFO - Resuming from step 101 with best_val_loss 8.2557
+2025-06-10 17:36:27,147 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 17:36:27,149 - src.training.utils - INFO - Loaded optimizer state from checkpoint.
+2025-06-10 17:36:43,912 - src.training.utils - INFO - [Step 125/200] Train: 7.8044, Val: 7.8119
+2025-06-10 17:36:46,179 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_latest.pt at step 125
+2025-06-10 17:36:49,363 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_best.pt at step 125
+2025-06-10 17:36:49,364 - src.training.utils - INFO -  New Best Model (Val: 7.8119)
+2025-06-10 17:37:08,924 - src.training.utils - INFO - [Step 150/200] Train: 7.4078, Val: 7.7596
+2025-06-10 17:37:11,359 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_latest.pt at step 150
+2025-06-10 17:37:14,179 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_best.pt at step 150
+2025-06-10 17:37:14,180 - src.training.utils - INFO -  New Best Model (Val: 7.7596)
+2025-06-10 17:37:57,961 - src.training.utils - INFO - [Step 175/200] Train: 7.5124, Val: 7.8028
+2025-06-10 17:38:00,397 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_latest.pt at step 175
+2025-06-10 17:38:00,398 - src.training.utils - INFO -  No improvement: 1/10
+2025-06-10 17:38:10,043 - src.training.utils - INFO - [Step 200/200] Train: 7.5842, Val: 7.7222
+2025-06-10 17:38:11,978 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_best.pt at step 200
+2025-06-10 17:38:11,978 - src.training.utils - INFO -  New Best Model (Val: 7.7222)
+2025-06-10 17:38:11,979 - src.training.utils - INFO - Training completed at step 200. Saving final checkpoint.
+2025-06-10 17:38:14,157 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_latest.pt at step 200
+2025-06-10 17:38:16,481 - src.training.utils - INFO - Preserved best checkpoint at model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_best.pt.
+2025-06-10 17:38:18,000 - src.training.utils - INFO - Loss curve saved to train_eval_plots/loss_run_tune_bs8_cw32_lr3e-04_3.png and logged.
+2025-06-10 17:38:18,049 - src.training.manager - INFO - Saved completion status to model_checkpoints/completion_tracking/tune_bs8_cw32_lr3e-04_3_completed.json
+2025-06-10 17:38:18,050 - src.training.manager - INFO - Running post-training evaluations...
+2025-06-10 17:38:18,179 - src.training.manager - INFO - Loaded best model from model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_best.pt for final eval.
+2025-06-10 17:38:19,880 - src.training.manager - INFO - Average Test Set Loss: 7.7860
+2025-06-10 17:38:19,913 - src.training.manager - INFO - Logging model artifact from model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_best.pt
+2025-06-10 17:38:21,586 - src.training.manager - INFO - Logged artifact: Transformer_e2e_model-tune_bs8_cw32_lr3e-04_3
+2025-06-10 17:38:21,587 - src.training.manager - INFO - Waiting for artifact upload to complete (timeout: 300s)...
+2025-06-10 17:38:41,859 - src.training.manager - INFO - Artifact upload finished.
+2025-06-10 17:38:41,861 - src.training.manager - INFO - Cleaning up local checkpoint files...
+2025-06-10 17:38:41,948 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_latest.pt
+2025-06-10 17:38:42,058 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw32_lr3e-04_3_best.pt
+2025-06-10 17:38:42,058 - src.training.manager - INFO - Training did not complete successfully - preserving checkpoints for resumption.
+2025-06-10 17:38:44,281 - src.training.manager - INFO - Found completion status for run tune_bs8_cw32_lr1e-04: early_stopping at step 875
+2025-06-10 17:38:44,281 - src.training.manager - INFO - Run tune_bs8_cw32_lr1e-04 was already completed. Creating new run with suffix.
+2025-06-10 17:38:44,282 - src.training.manager - INFO - Using new run ID: tune_bs8_cw32_lr1e-04_2
+2025-06-10 17:38:44,282 - src.training.manager - INFO - Starting Tuning Run: transformer_e2e_sweep__tune_bs8_cw32_lr1e-04_2 (new)
+2025-06-10 17:38:44,282 - src.training.manager - INFO - Starting training run: tune_bs8_cw32_lr1e-04_2
+2025-06-10 17:38:45,846 - src.training.manager - INFO - Run created at: 2025-06-10 17:38:44
+2025-06-10 17:38:45,847 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 17:38:45,896 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 17:38:57,386 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 17:38:57,566 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 17:38:57,605 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 17:38:57,675 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 17:38:57,677 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 17:39:07,153 - src.training.utils - INFO - [Step 25/200] Train: 10.7751, Val: 10.7213
+2025-06-10 17:39:09,087 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_latest.pt at step 25
+2025-06-10 17:39:11,180 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt at step 25
+2025-06-10 17:39:11,180 - src.training.utils - INFO -  New Best Model (Val: 10.7213)
+2025-06-10 17:39:23,186 - src.training.utils - INFO - [Step 50/200] Train: 10.3284, Val: 10.3111
+2025-06-10 17:39:25,823 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_latest.pt at step 50
+2025-06-10 17:39:28,490 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt at step 50
+2025-06-10 17:39:28,490 - src.training.utils - INFO -  New Best Model (Val: 10.3111)
+2025-06-10 17:39:39,825 - src.training.utils - INFO - [Step 75/200] Train: 10.0143, Val: 9.8759
+2025-06-10 17:39:42,428 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_latest.pt at step 75
+2025-06-10 17:39:44,857 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt at step 75
+2025-06-10 17:39:44,857 - src.training.utils - INFO -  New Best Model (Val: 9.8759)
+2025-06-10 17:39:57,109 - src.training.utils - INFO - [Step 100/200] Train: 9.3785, Val: 9.4700
+2025-06-10 17:39:59,833 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_latest.pt at step 100
+2025-06-10 17:40:02,500 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt at step 100
+2025-06-10 17:40:02,500 - src.training.utils - INFO -  New Best Model (Val: 9.4700)
+2025-06-10 17:40:14,246 - src.training.utils - INFO - [Step 125/200] Train: 9.2714, Val: 9.0626
+2025-06-10 17:40:17,189 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_latest.pt at step 125
+2025-06-10 17:40:21,222 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt at step 125
+2025-06-10 17:40:21,223 - src.training.utils - INFO -  New Best Model (Val: 9.0626)
+2025-06-10 17:40:36,689 - src.training.utils - INFO - [Step 150/200] Train: 8.8925, Val: 8.7858
+2025-06-10 17:40:39,117 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_latest.pt at step 150
+2025-06-10 17:40:41,570 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt at step 150
+2025-06-10 17:40:41,572 - src.training.utils - INFO -  New Best Model (Val: 8.7858)
+2025-06-10 17:40:53,867 - src.training.utils - INFO - [Step 175/200] Train: 8.3885, Val: 8.4914
+2025-06-10 17:40:56,454 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_latest.pt at step 175
+2025-06-10 17:40:58,845 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt at step 175
+2025-06-10 17:40:58,846 - src.training.utils - INFO -  New Best Model (Val: 8.4914)
+2025-06-10 17:41:09,405 - src.training.utils - INFO - [Step 200/200] Train: 8.5025, Val: 8.3735
+2025-06-10 17:41:11,975 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt at step 200
+2025-06-10 17:41:11,975 - src.training.utils - INFO -  New Best Model (Val: 8.3735)
+2025-06-10 17:41:11,976 - src.training.utils - INFO - Training completed at step 200. Saving final checkpoint.
+2025-06-10 17:41:14,534 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_latest.pt at step 200
+2025-06-10 17:41:16,737 - src.training.utils - INFO - Preserved best checkpoint at model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt.
+2025-06-10 17:41:17,558 - src.training.utils - INFO - Loss curve saved to train_eval_plots/loss_run_tune_bs8_cw32_lr1e-04_2.png and logged.
+2025-06-10 17:41:17,604 - src.training.manager - INFO - Saved completion status to model_checkpoints/completion_tracking/tune_bs8_cw32_lr1e-04_2_completed.json
+2025-06-10 17:41:17,605 - src.training.manager - INFO - Logging model artifact from model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt
+2025-06-10 17:41:19,023 - src.training.manager - INFO - Logged artifact: Transformer_e2e_model-tune_bs8_cw32_lr1e-04_2
+2025-06-10 17:41:19,023 - src.training.manager - INFO - Waiting for artifact upload to complete (timeout: 300s)...
+2025-06-10 17:41:39,111 - src.training.manager - INFO - Artifact upload finished.
+2025-06-10 17:41:39,113 - src.training.manager - INFO - Cleaning up local checkpoint files...
+2025-06-10 17:41:39,232 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_latest.pt
+2025-06-10 17:41:39,316 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw32_lr1e-04_2_best.pt
+2025-06-10 17:41:39,317 - src.training.manager - INFO - Training did not complete successfully - preserving checkpoints for resumption.
+2025-06-10 17:41:41,546 - src.training.manager - INFO - No previous data for tune_bs8_cw64_lr3e-04. Starting fresh training.
+2025-06-10 17:41:41,547 - src.training.manager - INFO - Starting Tuning Run: transformer_e2e_sweep__tune_bs8_cw64_lr3e-04 (new)
+2025-06-10 17:41:41,547 - src.training.manager - INFO - Starting training run: tune_bs8_cw64_lr3e-04
+2025-06-10 17:41:42,991 - src.training.manager - INFO - Run created at: 2025-06-10 17:41:41
+2025-06-10 17:41:42,992 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 17:41:43,008 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 17:41:54,205 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 17:41:54,386 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 17:41:54,435 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 17:41:54,503 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 17:41:54,505 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 17:42:10,893 - src.training.utils - INFO - [Step 25/200] Train: 9.9920, Val: 9.8921
+2025-06-10 17:42:12,669 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_latest.pt at step 25
+2025-06-10 17:42:14,760 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt at step 25
+2025-06-10 17:42:14,761 - src.training.utils - INFO -  New Best Model (Val: 9.8921)
+2025-06-10 17:42:30,947 - src.training.utils - INFO - [Step 50/200] Train: 9.0865, Val: 8.8350
+2025-06-10 17:42:32,844 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_latest.pt at step 50
+2025-06-10 17:42:35,006 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt at step 50
+2025-06-10 17:42:35,007 - src.training.utils - INFO -  New Best Model (Val: 8.8350)
+2025-06-10 17:42:53,790 - src.training.utils - INFO - [Step 75/200] Train: 8.2291, Val: 8.1133
+2025-06-10 17:42:55,982 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_latest.pt at step 75
+2025-06-10 17:42:58,346 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt at step 75
+2025-06-10 17:42:58,349 - src.training.utils - INFO -  New Best Model (Val: 8.1133)
+2025-06-10 17:43:15,597 - src.training.utils - INFO - [Step 100/200] Train: 7.7158, Val: 7.8204
+2025-06-10 17:43:17,829 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_latest.pt at step 100
+2025-06-10 17:43:20,424 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt at step 100
+2025-06-10 17:43:20,425 - src.training.utils - INFO -  New Best Model (Val: 7.8204)
+2025-06-10 17:43:38,714 - src.training.utils - INFO - [Step 125/200] Train: 7.4801, Val: 7.7332
+2025-06-10 17:43:41,101 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_latest.pt at step 125
+2025-06-10 17:43:43,537 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt at step 125
+2025-06-10 17:43:43,537 - src.training.utils - INFO -  New Best Model (Val: 7.7332)
+2025-06-10 17:44:02,849 - src.training.utils - INFO - [Step 150/200] Train: 7.1811, Val: 7.7149
+2025-06-10 17:44:05,201 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_latest.pt at step 150
+2025-06-10 17:44:07,636 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt at step 150
+2025-06-10 17:44:07,636 - src.training.utils - INFO -  New Best Model (Val: 7.7149)
+2025-06-10 17:44:29,323 - src.training.utils - INFO - [Step 175/200] Train: 7.7175, Val: 7.6617
+2025-06-10 17:44:31,398 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_latest.pt at step 175
+2025-06-10 17:44:33,667 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt at step 175
+2025-06-10 17:44:33,667 - src.training.utils - INFO -  New Best Model (Val: 7.6617)
+2025-06-10 17:44:51,228 - src.training.utils - INFO - [Step 200/200] Train: 7.3029, Val: 7.6128
+2025-06-10 17:44:53,814 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt at step 200
+2025-06-10 17:44:53,814 - src.training.utils - INFO -  New Best Model (Val: 7.6128)
+2025-06-10 17:44:53,815 - src.training.utils - INFO - Training completed at step 200. Saving final checkpoint.
+2025-06-10 17:44:55,919 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr3e-04_latest.pt at step 200
+2025-06-10 17:44:58,162 - src.training.utils - INFO - Preserved best checkpoint at model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt.
+2025-06-10 17:44:58,831 - src.training.utils - INFO - Loss curve saved to train_eval_plots/loss_run_tune_bs8_cw64_lr3e-04.png and logged.
+2025-06-10 17:44:58,894 - src.training.manager - INFO - Saved completion status to model_checkpoints/completion_tracking/tune_bs8_cw64_lr3e-04_completed.json
+2025-06-10 17:44:58,895 - src.training.manager - INFO - Logging model artifact from model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt
+2025-06-10 17:45:00,225 - src.training.manager - INFO - Logged artifact: Transformer_e2e_model-tune_bs8_cw64_lr3e-04
+2025-06-10 17:45:00,225 - src.training.manager - INFO - Waiting for artifact upload to complete (timeout: 300s)...
+2025-06-10 17:45:21,932 - src.training.manager - INFO - Artifact upload finished.
+2025-06-10 17:45:21,953 - src.training.manager - INFO - Cleaning up local checkpoint files...
+2025-06-10 17:45:22,061 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw64_lr3e-04_latest.pt
+2025-06-10 17:45:22,183 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw64_lr3e-04_best.pt
+2025-06-10 17:45:22,183 - src.training.manager - INFO - Training did not complete successfully - preserving checkpoints for resumption.
+2025-06-10 17:45:24,261 - src.training.manager - INFO - No previous data for tune_bs8_cw64_lr1e-04. Starting fresh training.
+2025-06-10 17:45:24,262 - src.training.manager - INFO - Starting Tuning Run: transformer_e2e_sweep__tune_bs8_cw64_lr1e-04 (new)
+2025-06-10 17:45:24,262 - src.training.manager - INFO - Starting training run: tune_bs8_cw64_lr1e-04
+2025-06-10 17:45:25,724 - src.training.manager - INFO - Run created at: 2025-06-10 17:45:24
+2025-06-10 17:45:25,725 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 17:45:25,744 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 17:45:36,823 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 17:45:37,003 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 17:45:37,042 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 17:45:37,110 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 17:45:37,112 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 17:45:52,386 - src.training.utils - INFO - [Step 25/200] Train: 10.6888, Val: 10.6445
+2025-06-10 17:45:54,205 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_latest.pt at step 25
+2025-06-10 17:45:56,255 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt at step 25
+2025-06-10 17:45:56,255 - src.training.utils - INFO -  New Best Model (Val: 10.6445)
+2025-06-10 17:46:11,531 - src.training.utils - INFO - [Step 50/200] Train: 10.2699, Val: 10.1983
+2025-06-10 17:46:13,443 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_latest.pt at step 50
+2025-06-10 17:46:15,726 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt at step 50
+2025-06-10 17:46:15,727 - src.training.utils - INFO -  New Best Model (Val: 10.1983)
+2025-06-10 17:46:31,850 - src.training.utils - INFO - [Step 75/200] Train: 9.7414, Val: 9.6887
+2025-06-10 17:46:33,652 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_latest.pt at step 75
+2025-06-10 17:46:35,630 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt at step 75
+2025-06-10 17:46:35,630 - src.training.utils - INFO -  New Best Model (Val: 9.6887)
+2025-06-10 17:46:50,821 - src.training.utils - INFO - [Step 100/200] Train: 9.3520, Val: 9.3129
+2025-06-10 17:46:52,956 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_latest.pt at step 100
+2025-06-10 17:46:54,896 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt at step 100
+2025-06-10 17:46:54,896 - src.training.utils - INFO -  New Best Model (Val: 9.3129)
+2025-06-10 17:47:10,983 - src.training.utils - INFO - [Step 125/200] Train: 9.0095, Val: 8.9693
+2025-06-10 17:47:13,476 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_latest.pt at step 125
+2025-06-10 17:47:15,502 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt at step 125
+2025-06-10 17:47:15,502 - src.training.utils - INFO -  New Best Model (Val: 8.9693)
+2025-06-10 17:47:32,890 - src.training.utils - INFO - [Step 150/200] Train: 8.8015, Val: 8.6707
+2025-06-10 17:47:35,284 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_latest.pt at step 150
+2025-06-10 17:47:37,989 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt at step 150
+2025-06-10 17:47:37,990 - src.training.utils - INFO -  New Best Model (Val: 8.6707)
+2025-06-10 17:47:59,643 - src.training.utils - INFO - [Step 175/200] Train: 8.3565, Val: 8.4264
+2025-06-10 17:48:01,965 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_latest.pt at step 175
+2025-06-10 17:48:04,150 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt at step 175
+2025-06-10 17:48:04,150 - src.training.utils - INFO -  New Best Model (Val: 8.4264)
+2025-06-10 17:48:22,593 - src.training.utils - INFO - [Step 200/200] Train: 8.2726, Val: 8.2091
+2025-06-10 17:48:24,779 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt at step 200
+2025-06-10 17:48:24,780 - src.training.utils - INFO -  New Best Model (Val: 8.2091)
+2025-06-10 17:48:24,781 - src.training.utils - INFO - Training completed at step 200. Saving final checkpoint.
+2025-06-10 17:48:26,959 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw64_lr1e-04_latest.pt at step 200
+2025-06-10 17:48:29,399 - src.training.utils - INFO - Preserved best checkpoint at model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt.
+2025-06-10 17:48:30,191 - src.training.utils - INFO - Loss curve saved to train_eval_plots/loss_run_tune_bs8_cw64_lr1e-04.png and logged.
+2025-06-10 17:48:30,260 - src.training.manager - INFO - Saved completion status to model_checkpoints/completion_tracking/tune_bs8_cw64_lr1e-04_completed.json
+2025-06-10 17:48:30,261 - src.training.manager - INFO - Logging model artifact from model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt
+2025-06-10 17:48:32,230 - src.training.manager - INFO - Logged artifact: Transformer_e2e_model-tune_bs8_cw64_lr1e-04
+2025-06-10 17:48:32,230 - src.training.manager - INFO - Waiting for artifact upload to complete (timeout: 300s)...
+2025-06-10 17:48:52,193 - src.training.manager - INFO - Artifact upload finished.
+2025-06-10 17:48:52,194 - src.training.manager - INFO - Cleaning up local checkpoint files...
+2025-06-10 17:48:52,249 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw64_lr1e-04_latest.pt
+2025-06-10 17:48:52,350 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw64_lr1e-04_best.pt
+2025-06-10 17:48:52,350 - src.training.manager - INFO - Training did not complete successfully - preserving checkpoints for resumption.
+2025-06-10 17:48:54,437 - src.training.manager - INFO - No previous data for tune_bs16_cw32_lr3e-04. Starting fresh training.
+2025-06-10 17:48:54,437 - src.training.manager - INFO - Starting Tuning Run: transformer_e2e_sweep__tune_bs16_cw32_lr3e-04 (new)
+2025-06-10 17:48:54,437 - src.training.manager - INFO - Starting training run: tune_bs16_cw32_lr3e-04
+2025-06-10 17:48:56,013 - src.training.manager - INFO - Run created at: 2025-06-10 17:48:54
+2025-06-10 17:48:56,014 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 17:48:56,058 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 17:49:06,588 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 17:49:06,768 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 17:49:06,819 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 17:49:06,887 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 17:49:06,890 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 17:49:21,737 - src.training.utils - INFO - [Step 25/200] Train: 9.8786, Val: 9.8841
+2025-06-10 17:49:23,763 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_latest.pt at step 25
+2025-06-10 17:49:25,639 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt at step 25
+2025-06-10 17:49:25,640 - src.training.utils - INFO -  New Best Model (Val: 9.8841)
+2025-06-10 17:49:40,194 - src.training.utils - INFO - [Step 50/200] Train: 8.9280, Val: 8.7800
+2025-06-10 17:49:42,051 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_latest.pt at step 50
+2025-06-10 17:49:43,935 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt at step 50
+2025-06-10 17:49:43,936 - src.training.utils - INFO -  New Best Model (Val: 8.7800)
+2025-06-10 17:50:00,522 - src.training.utils - INFO - [Step 75/200] Train: 8.0161, Val: 8.1531
+2025-06-10 17:50:02,305 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_latest.pt at step 75
+2025-06-10 17:50:04,217 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt at step 75
+2025-06-10 17:50:04,218 - src.training.utils - INFO -  New Best Model (Val: 8.1531)
+2025-06-10 17:50:19,083 - src.training.utils - INFO - [Step 100/200] Train: 7.9046, Val: 7.8005
+2025-06-10 17:50:20,839 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_latest.pt at step 100
+2025-06-10 17:50:23,166 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt at step 100
+2025-06-10 17:50:23,166 - src.training.utils - INFO -  New Best Model (Val: 7.8005)
+2025-06-10 17:50:37,872 - src.training.utils - INFO - [Step 125/200] Train: 7.6898, Val: 7.6759
+2025-06-10 17:50:39,696 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_latest.pt at step 125
+2025-06-10 17:50:41,763 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt at step 125
+2025-06-10 17:50:41,764 - src.training.utils - INFO -  New Best Model (Val: 7.6759)
+2025-06-10 17:50:58,776 - src.training.utils - INFO - [Step 150/200] Train: 7.4356, Val: 7.6733
+2025-06-10 17:51:00,991 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_latest.pt at step 150
+2025-06-10 17:51:03,362 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt at step 150
+2025-06-10 17:51:03,362 - src.training.utils - INFO -  New Best Model (Val: 7.6733)
+2025-06-10 17:51:23,347 - src.training.utils - INFO - [Step 175/200] Train: 7.4823, Val: 7.6495
+2025-06-10 17:51:25,707 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_latest.pt at step 175
+2025-06-10 17:51:28,102 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt at step 175
+2025-06-10 17:51:28,102 - src.training.utils - INFO -  New Best Model (Val: 7.6495)
+2025-06-10 17:51:45,786 - src.training.utils - INFO - [Step 200/200] Train: 7.4566, Val: 7.6087
+2025-06-10 17:51:48,035 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt at step 200
+2025-06-10 17:51:48,036 - src.training.utils - INFO -  New Best Model (Val: 7.6087)
+2025-06-10 17:51:48,037 - src.training.utils - INFO - Training completed at step 200. Saving final checkpoint.
+2025-06-10 17:51:50,577 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr3e-04_latest.pt at step 200
+2025-06-10 17:51:53,455 - src.training.utils - INFO - Preserved best checkpoint at model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt.
+2025-06-10 17:51:54,573 - src.training.utils - INFO - Loss curve saved to train_eval_plots/loss_run_tune_bs16_cw32_lr3e-04.png and logged.
+2025-06-10 17:51:54,619 - src.training.manager - INFO - Saved completion status to model_checkpoints/completion_tracking/tune_bs16_cw32_lr3e-04_completed.json
+2025-06-10 17:51:54,619 - src.training.manager - INFO - Logging model artifact from model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt
+2025-06-10 17:51:56,189 - src.training.manager - INFO - Logged artifact: Transformer_e2e_model-tune_bs16_cw32_lr3e-04
+2025-06-10 17:51:56,190 - src.training.manager - INFO - Waiting for artifact upload to complete (timeout: 300s)...
+2025-06-10 17:52:16,376 - src.training.manager - INFO - Artifact upload finished.
+2025-06-10 17:52:16,377 - src.training.manager - INFO - Cleaning up local checkpoint files...
+2025-06-10 17:52:16,468 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs16_cw32_lr3e-04_latest.pt
+2025-06-10 17:52:16,586 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs16_cw32_lr3e-04_best.pt
+2025-06-10 17:52:16,586 - src.training.manager - INFO - Training did not complete successfully - preserving checkpoints for resumption.
+2025-06-10 17:52:18,891 - src.training.manager - INFO - No previous data for tune_bs16_cw32_lr1e-04. Starting fresh training.
+2025-06-10 17:52:18,891 - src.training.manager - INFO - Starting Tuning Run: transformer_e2e_sweep__tune_bs16_cw32_lr1e-04 (new)
+2025-06-10 17:52:18,892 - src.training.manager - INFO - Starting training run: tune_bs16_cw32_lr1e-04
+2025-06-10 17:52:20,295 - src.training.manager - INFO - Run created at: 2025-06-10 17:52:18
+2025-06-10 17:52:20,295 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 17:52:20,308 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 17:52:30,675 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 17:52:30,856 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 17:52:30,899 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 17:52:30,969 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 17:52:30,971 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 17:53:01,676 - src.training.utils - INFO - [Step 25/200] Train: 10.6398, Val: 10.6178
+2025-06-10 17:53:04,116 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_latest.pt at step 25
+2025-06-10 17:53:06,476 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_best.pt at step 25
+2025-06-10 17:53:06,477 - src.training.utils - INFO -  New Best Model (Val: 10.6178)
+2025-06-10 17:53:23,051 - src.training.utils - INFO - [Step 50/200] Train: 10.0958, Val: 10.1064
+2025-06-10 17:53:25,024 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_latest.pt at step 50
+2025-06-10 17:53:27,134 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_best.pt at step 50
+2025-06-10 17:53:27,134 - src.training.utils - INFO -  New Best Model (Val: 10.1064)
+2025-06-10 17:54:09,327 - src.training.utils - INFO - [Step 75/200] Train: 9.6694, Val: 9.6086
+2025-06-10 17:54:13,042 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_latest.pt at step 75
+2025-06-10 17:54:15,663 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_best.pt at step 75
+2025-06-10 17:54:15,664 - src.training.utils - INFO -  New Best Model (Val: 9.6086)
+2025-06-10 17:54:38,618 - src.training.utils - INFO - [Step 100/200] Train: 9.1757, Val: 9.2284
+2025-06-10 17:54:40,953 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_latest.pt at step 100
+2025-06-10 17:54:43,779 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_best.pt at step 100
+2025-06-10 17:54:43,780 - src.training.utils - INFO -  New Best Model (Val: 9.2284)
+2025-06-10 17:55:04,962 - src.training.utils - INFO - [Step 125/200] Train: 8.9227, Val: 8.8917
+2025-06-10 17:55:07,174 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_latest.pt at step 125
+2025-06-10 17:55:09,912 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_best.pt at step 125
+2025-06-10 17:55:09,912 - src.training.utils - INFO -  New Best Model (Val: 8.8917)
+2025-06-10 17:55:38,383 - src.training.utils - INFO - [Step 150/200] Train: 8.6237, Val: 8.6416
+2025-06-10 17:55:42,027 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_latest.pt at step 150
+2025-06-10 17:55:46,491 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs16_cw32_lr1e-04_best.pt at step 150
+2025-06-10 17:55:46,493 - src.training.utils - INFO -  New Best Model (Val: 8.6416)
+2025-06-10 17:56:25,932 - __main__ - INFO - Training process finished.
+2025-06-10 17:56:41,795 - __main__ - INFO - Starting training process with mode: sweep
+2025-06-10 17:56:41,795 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-10 17:56:54,213 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-10 17:56:54,477 - src.data.processing - INFO - Truncated wikitext to 10000000 characters for CPU training.
+2025-06-10 17:56:54,478 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-10 17:56:55,838 - src.training.manager - INFO - --- Starting Hyperparameter Search ---
+2025-06-10 17:56:55,838 - src.training.manager - INFO - Hyperparameter sweep started at: 20250610_1756
+2025-06-10 17:56:55,839 - src.training.manager - INFO - Found completion status for run tune_bs8_cw32_lr3e-04: early_stopping at step 1200
+2025-06-10 17:56:55,839 - src.training.manager - INFO - Run tune_bs8_cw32_lr3e-04 was already completed. Creating new run with suffix.
+2025-06-10 17:56:55,840 - src.training.manager - INFO - Found completion status for run tune_bs8_cw32_lr3e-04_2: early_stopping at step 1450
+2025-06-10 17:56:55,841 - src.training.manager - INFO - Found completion status for run tune_bs8_cw32_lr3e-04_3: all_steps_completed at step 200
+2025-06-10 17:56:55,844 - src.training.manager - INFO - Using new run ID: tune_bs8_cw32_lr3e-04_4
+2025-06-10 17:56:55,844 - src.training.manager - INFO - Starting Tuning Run: transformer_e2e_sweep__tune_bs8_cw32_lr3e-04_4 (new)
+2025-06-10 17:56:55,844 - src.training.manager - INFO - Starting training run: tune_bs8_cw32_lr3e-04_4
+2025-06-10 17:56:59,665 - src.training.manager - INFO - Run created at: 2025-06-10 17:56:55
+2025-06-10 17:56:59,666 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 17:56:59,708 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 17:57:19,353 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 17:57:19,726 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 17:57:19,863 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 17:57:20,034 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 17:57:22,769 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 17:57:43,557 - src.training.utils - INFO - [Step 25/200] Train: 10.0634, Val: 9.9357
+2025-06-10 17:57:47,716 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_latest.pt at step 25
+2025-06-10 17:57:53,766 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_best.pt at step 25
+2025-06-10 17:57:53,766 - src.training.utils - INFO -  New Best Model (Val: 9.9357)
+2025-06-10 17:58:17,264 - src.training.utils - INFO - [Step 50/200] Train: 9.0392, Val: 8.9751
+2025-06-10 17:58:19,762 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_latest.pt at step 50
+2025-06-10 17:58:22,456 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_best.pt at step 50
+2025-06-10 17:58:22,456 - src.training.utils - INFO -  New Best Model (Val: 8.9751)
+2025-06-10 17:58:32,306 - src.training.utils - INFO - [Step 75/200] Train: 8.2570, Val: 8.2114
+2025-06-10 17:58:34,613 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_latest.pt at step 75
+2025-06-10 17:58:36,907 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_best.pt at step 75
+2025-06-10 17:58:36,908 - src.training.utils - INFO -  New Best Model (Val: 8.2114)
+2025-06-10 17:58:46,066 - src.training.utils - INFO - [Step 100/200] Train: 7.9183, Val: 7.9388
+2025-06-10 17:58:48,360 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_latest.pt at step 100
+2025-06-10 17:58:51,000 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_best.pt at step 100
+2025-06-10 17:58:51,001 - src.training.utils - INFO -  New Best Model (Val: 7.9388)
+2025-06-10 17:59:00,495 - src.training.utils - INFO - [Step 125/200] Train: 8.0266, Val: 7.8974
+2025-06-10 17:59:02,730 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_latest.pt at step 125
+2025-06-10 17:59:05,135 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_best.pt at step 125
+2025-06-10 17:59:05,136 - src.training.utils - INFO -  New Best Model (Val: 7.8974)
+2025-06-10 17:59:14,419 - src.training.utils - INFO - [Step 150/200] Train: 7.7619, Val: 7.7448
+2025-06-10 17:59:16,613 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_latest.pt at step 150
+2025-06-10 17:59:18,946 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_best.pt at step 150
+2025-06-10 17:59:18,947 - src.training.utils - INFO -  New Best Model (Val: 7.7448)
+2025-06-10 17:59:28,733 - src.training.utils - INFO - [Step 175/200] Train: 7.8021, Val: 7.8535
+2025-06-10 17:59:30,874 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_latest.pt at step 175
+2025-06-10 17:59:30,875 - src.training.utils - INFO -  No improvement: 1/10
+2025-06-10 17:59:40,451 - src.training.utils - INFO - [Step 200/200] Train: 7.4873, Val: 7.7515
+2025-06-10 17:59:40,452 - src.training.utils - INFO -  No improvement: 2/10
+2025-06-10 17:59:40,452 - src.training.utils - INFO - Training completed at step 200. Saving final checkpoint.
+2025-06-10 17:59:42,537 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_latest.pt at step 200
+2025-06-10 17:59:44,871 - src.training.utils - INFO - Preserved best checkpoint at model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_best.pt.
+2025-06-10 17:59:46,525 - src.training.utils - INFO - Loss curve saved to train_eval_plots/loss_run_tune_bs8_cw32_lr3e-04_4.png and logged.
+2025-06-10 17:59:46,570 - src.training.manager - INFO - Saved completion status to model_checkpoints/completion_tracking/tune_bs8_cw32_lr3e-04_4_completed.json
+2025-06-10 17:59:46,570 - src.training.manager - INFO - Logging model artifact from model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_best.pt
+2025-06-10 17:59:48,281 - src.training.manager - INFO - Logged artifact: Transformer_e2e_model-tune_bs8_cw32_lr3e-04_4
+2025-06-10 17:59:48,334 - src.training.manager - INFO - Waiting for artifact upload to complete (timeout: 300s)...
+2025-06-10 18:00:09,869 - src.training.manager - INFO - Artifact upload finished.
+2025-06-10 18:00:09,873 - src.training.manager - INFO - Cleaning up local checkpoint files...
+2025-06-10 18:00:09,993 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_latest.pt
+2025-06-10 18:00:10,114 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_tune_bs8_cw32_lr3e-04_4_best.pt
+2025-06-10 18:00:10,114 - src.training.manager - INFO - Training did not complete successfully - preserving checkpoints for resumption.
+2025-06-10 18:00:13,036 - src.training.manager - INFO - Found completion status for run tune_bs8_cw32_lr1e-04: early_stopping at step 875
+2025-06-10 18:00:13,036 - src.training.manager - INFO - Run tune_bs8_cw32_lr1e-04 was already completed. Creating new run with suffix.
+2025-06-10 18:00:13,037 - src.training.manager - INFO - Found completion status for run tune_bs8_cw32_lr1e-04_2: all_steps_completed at step 200
+2025-06-10 18:00:13,038 - src.training.manager - INFO - Using new run ID: tune_bs8_cw32_lr1e-04_3
+2025-06-10 18:00:13,038 - src.training.manager - INFO - Starting Tuning Run: transformer_e2e_sweep__tune_bs8_cw32_lr1e-04_3 (new)
+2025-06-10 18:00:13,038 - src.training.manager - INFO - Starting training run: tune_bs8_cw32_lr1e-04_3
+2025-06-10 18:00:14,574 - src.training.manager - INFO - Run created at: 2025-06-10 18:00:13
+2025-06-10 18:00:14,576 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 18:00:14,594 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 18:00:32,582 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 18:00:32,976 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 18:00:33,071 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 18:00:33,281 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 18:00:33,284 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 18:00:46,567 - src.training.utils - INFO - [Step 25/200] Train: 10.6806, Val: 10.6869
+2025-06-10 18:00:48,881 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_3_latest.pt at step 25
+2025-06-10 18:00:51,486 - src.training.utils - INFO - Checkpoint saved to model_checkpoints/run_tune_bs8_cw32_lr1e-04_3_best.pt at step 25
+2025-06-10 18:00:51,487 - src.training.utils - INFO -  New Best Model (Val: 10.6869)
+2025-06-10 18:01:04,937 - src.training.utils - INFO - [Step 50/200] Train: 10.2660, Val: 10.2944
+2025-06-10 18:01:07,938 - __main__ - INFO - Training process finished.
