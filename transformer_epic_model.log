@@ -1188,3 +1188,37 @@ TypeError: '<=' not supported between instances of 'float' and 'str'
 2025-06-10 16:17:34,329 - src.training.manager - INFO - Removed checkpoint: model_checkpoints/run_transformer_e2e_single_run__transformer_e2e_sweep__bs12_cw16_lr3e-04_best.pt
 2025-06-10 16:17:34,330 - src.training.manager - INFO - Training did not complete successfully - preserving checkpoints for resumption.
 2025-06-10 16:17:36,544 - __main__ - INFO - Training process finished.
+2025-06-10 16:22:18,197 - __main__ - INFO - Starting training process with mode: single
+2025-06-10 16:22:18,198 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-10 16:22:36,982 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-10 16:22:37,208 - src.data.processing - INFO - Truncated wikitext to 10000000 characters for CPU training.
+2025-06-10 16:22:37,208 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-10 16:22:39,781 - src.training.manager - INFO - Found completion status for run transformer_e2e_single_run__transformer_e2e_sweep_: all_steps_completed at step 1000
+2025-06-10 16:22:39,782 - src.training.manager - INFO - Run transformer_e2e_single_run__transformer_e2e_sweep_ was already completed. Creating new run with suffix.
+2025-06-10 16:22:39,783 - src.training.manager - INFO - Using new run ID: transformer_e2e_single_run__transformer_e2e_sweep__2
+2025-06-10 16:22:39,784 - src.training.manager - INFO - Starting training run: transformer_e2e_single_run__transformer_e2e_sweep__2
+2025-06-10 16:22:43,139 - src.training.manager - INFO - Run created at: 2025-06-10 16:22:39
+2025-06-10 16:22:43,140 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 16:22:43,158 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 16:23:03,190 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 16:23:03,394 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 16:23:03,446 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 16:23:03,542 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 16:23:05,112 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 16:23:17,071 - __main__ - INFO - Training process finished.
+2025-06-10 16:26:42,403 - __main__ - INFO - Starting training process with mode: single
+2025-06-10 16:26:42,403 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-10 16:26:53,828 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-10 16:26:54,008 - src.data.processing - INFO - Truncated wikitext to 10000000 characters for CPU training.
+2025-06-10 16:26:54,008 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-10 16:26:55,113 - src.training.manager - INFO - No previous data for transformer_e2e_single_run. Starting fresh training.
+2025-06-10 16:26:55,113 - src.training.manager - INFO - Starting training run: transformer_e2e_single_run
+2025-06-10 16:26:57,622 - src.training.manager - INFO - Run created at: 2025-06-10 16:26:55
+2025-06-10 16:26:57,623 - src.training.manager - INFO - Starting fresh - Python 3.11.8
+2025-06-10 16:26:57,644 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-10 16:27:11,098 - src.data.processing - INFO - Tokenization complete. Total tokens: 2197766
+2025-06-10 16:27:11,343 - src.data.processing - INFO - Train tokens: 1780191, Val tokens: 197798, Test tokens: 219777
+2025-06-10 16:27:11,403 - src.models.transformer - INFO - Linearly scaling dropout from 0.100 to 0.200 over 3 layers. Result: [0.1, 0.15, 0.2]
+2025-06-10 16:27:11,525 - src.training.utils - INFO - No checkpoint found. Starting fresh.
+2025-06-10 16:27:12,968 - src.training.utils - INFO - Starting/Resuming training on cpu
+2025-06-10 16:27:17,707 - __main__ - INFO - Training process finished.

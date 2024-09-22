@@ -45,13 +45,8 @@ def get_checkpoint_paths(run_id, cfg, run_params=None):
         else:
             lr = "unknown"
     
-    # Format learning rate consistently
-    if isinstance(lr, (int, float)):
-        lr_str = f"{lr:.0e}"
-    else:
-        lr_str = str(lr)
-    
-    base_filename = f"run_{run_id}_bs{bs}_cw{cw}_lr{lr_str}"
+    # Since run_id now contains hyperparameter info, use it directly
+    base_filename = f"run_{run_id}"
     
     return {
         'latest': os.path.join(cfg.MODEL_CHECKPOINTS_DIR, f"{base_filename}_latest.pt"),
@@ -160,7 +155,7 @@ def plot_and_log_loss(
     plt.tight_layout()
 
     plot_path = os.path.join(
-        cfg.LOSS_PLOT_DIRECTORY, f"loss_run_{run_id}_bs{b_s}_cw{c_w}_lr{l_r:.0e}.png"
+        cfg.LOSS_PLOT_DIRECTORY, f"loss_run_{run_id}.png"
     )
     plt.savefig(plot_path)
 
