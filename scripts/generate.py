@@ -108,7 +108,7 @@ def main():
     parser.add_argument(
         "--gen_config",
         type=str,
-        default="generate_config.yml",
+        default="configs/generate_config.yml",
         help="Path to the generation configuration YAML file.",
     )
     args = parser.parse_args()
@@ -132,7 +132,7 @@ def main():
 
         # Load local training config to get W&B project name
         local_cfg_dict = load_config(generate_cfg.MAIN_CONFIG_PATH)
-        wandb_project = local_cfg_dict.get("WANDB_PROJECT")
+        wandb_project = getattr(local_cfg_dict, "WANDB_PROJECT", None)
         if not wandb_project:
             raise RuntimeError(
                 f"WANDB_PROJECT not found in local config file: {generate_cfg.MAIN_CONFIG_PATH}"
@@ -146,7 +146,7 @@ def main():
             )
 
         tokenizer_name = model_config.get(
-            "tokenizer_name", local_cfg_dict.get("TOKENIZER_NAME", "gpt2")
+            "tokenizer_name", getattr(local_cfg_dict, "TOKENIZER_NAME", "gpt2")
         )
 
         # Load tokenizer

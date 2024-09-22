@@ -2,13 +2,13 @@
 
 # Model loading
 # Path to the local model checkpoint file (.pt)
-CHECKPOINT_PATH:
+CHECKPOINT_PATH: "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/model_checkpoints/run_single_bs12_cw16_lr3e-4_2_best.pt"
 
 # W&B run_id associated with the checkpoint (to fetch its training config)
-RUN_ID: "main_bs16_cw64_lr5e-04"
+RUN_ID: "single_bs12_cw16_lr3e-4_2"
 
 # Path to the main training config.yml (needed to find W&B project name)
-MAIN_CONFIG_PATH: "config.yml"
+MAIN_CONFIG_PATH: "configs/config.yml"
 
 # Generation parameters
 

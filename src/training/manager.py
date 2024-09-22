@@ -579,8 +579,7 @@ class TrainingManager:
 
 def run_single_training(raw_text, tokenizer, cfg):
     """Initializes and runs a single training session."""
-    # Create descriptive base_run_id with hyperparameters (like hyperparameter search does)
-    base_run_id = f"single_bs{cfg.BATCH_SIZE}_cw{cfg.CONTEXT_WINDOW}_lr{cfg.LEARNING_RATE:.0e}"
+    base_run_id = f"single_bs{cfg.BATCH_SIZE}_cw{cfg.CONTEXT_WINDOW}_lr{cfg.LEARNING_RATE}"
     run_id, is_resuming = generate_smart_run_id(base_run_id, cfg)
     
     # Base parameters for this run

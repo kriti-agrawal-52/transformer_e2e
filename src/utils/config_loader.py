@@ -43,11 +43,15 @@ def load_config(config_path: str = "config.yml", as_namespace: bool = True):
     if "WANDB_PROJECT" in config_dict:
         _validate_wandb_project_name(config_dict["WANDB_PROJECT"])
 
-    if config_dict["DEVICE"] == "auto":
+    # Auto-detect device if needed
+    if "DEVICE" in config_dict and config_dict["DEVICE"] == "auto":
         config_dict["DEVICE"] = "cuda" if torch.cuda.is_available() else "cpu"
 
-    ensure_path_exists(config_dict["MODEL_CHECKPOINTS_DIR"])
-    ensure_path_exists(config_dict["LOSS_PLOT_DIRECTORY"])
+    # Ensure directories exist (only if they're specified in the config)
+    if "MODEL_CHECKPOINTS_DIR" in config_dict:
+        ensure_path_exists(config_dict["MODEL_CHECKPOINTS_DIR"])
+    if "LOSS_PLOT_DIRECTORY" in config_dict:
+        ensure_path_exists(config_dict["LOSS_PLOT_DIRECTORY"])
 
     if as_namespace:
         return dict_to_namespace(config_dict)

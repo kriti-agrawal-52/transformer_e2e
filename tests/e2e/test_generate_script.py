@@ -39,7 +39,7 @@ class TestGenerateScript:
         env['PYTHONPATH'] = os.getcwd()
         
         result = subprocess.run(
-            [sys.executable, "scripts/generate.py", "--config", "nonexistent.yml"],
+            [sys.executable, "scripts/generate.py", "--gen_config", "nonexistent.yml"],
             capture_output=True,
             text=True,
             env=env
