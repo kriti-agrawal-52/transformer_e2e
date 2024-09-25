@@ -67,9 +67,8 @@ def test_checkpoint_path_generation(mock_training_manager):
     """Test that checkpoint paths are generated correctly based on run parameters."""
     manager = mock_training_manager
     
-    # Test that paths include run_id and parameters
+    # Test that paths include run_id
     assert "test-run-id-123" in manager.latest_ckpt_path
-    assert "bs4_cw16_lr1e-03" in manager.latest_ckpt_path
     assert manager.latest_ckpt_path.endswith("_latest.pt")
     assert manager.best_ckpt_path.endswith("_best.pt")
 

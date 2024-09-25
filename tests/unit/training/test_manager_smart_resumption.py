@@ -41,11 +41,8 @@ def sample_checkpoints(mock_config):
     """Create sample checkpoint files for testing."""
     def _create_checkpoint(run_id):
         """Helper to create mock checkpoint files."""
-        bs = mock_config.BATCH_SIZE
-        cw = mock_config.CONTEXT_WINDOW
-        lr = f"{mock_config.LEARNING_RATE:.0e}"
-        
-        base_filename = f"run_{run_id}_bs{bs}_cw{cw}_lr{lr}"
+        # Use the same logic as get_checkpoint_paths
+        base_filename = f"run_{run_id}"
         latest_path = os.path.join(mock_config.MODEL_CHECKPOINTS_DIR, f"{base_filename}_latest.pt")
         best_path = os.path.join(mock_config.MODEL_CHECKPOINTS_DIR, f"{base_filename}_best.pt")
         

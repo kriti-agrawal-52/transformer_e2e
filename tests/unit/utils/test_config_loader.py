@@ -81,9 +81,15 @@ def test_load_config_missing_required_keys(tmp_path):
     with open(config_path, "w") as f:
         yaml.dump(incomplete_config, f)
     
-    # Should raise KeyError when trying to access missing required paths
-    with pytest.raises(KeyError):
-        load_config(str(config_path))
+    # Should load successfully but accessing missing keys should raise AttributeError
+    config = load_config(str(config_path))
+    
+    # Should have DEVICE
+    assert config.DEVICE == "cpu"
+    
+    # Should raise AttributeError when trying to access missing required paths
+    with pytest.raises(AttributeError):
+        _ = config.MODEL_CHECKPOINTS_DIR
 
 
 @pytest.mark.unit

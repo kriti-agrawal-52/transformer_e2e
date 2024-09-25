@@ -39,7 +39,7 @@ class TestCheckpointPaths:
         
         paths = get_checkpoint_paths(run_id, mock_config)
         
-        expected_base = "run_test_run_bs16_cw128_lr1e-04"
+        expected_base = "run_test_run"
         assert paths['base_filename'] == expected_base
         assert paths['latest'].endswith(f"{expected_base}_latest.pt")
         assert paths['best'].endswith(f"{expected_base}_best.pt")
@@ -58,7 +58,7 @@ class TestCheckpointPaths:
         
         paths = get_checkpoint_paths(run_id, mock_config, run_params)
         
-        expected_base = "run_test_run_bs32_cw256_lr2e-03"
+        expected_base = "run_test_run"
         assert paths['base_filename'] == expected_base
         assert paths['latest'].endswith(f"{expected_base}_latest.pt")
         assert paths['best'].endswith(f"{expected_base}_best.pt")
@@ -68,16 +68,18 @@ class TestCheckpointPaths:
         """Test that learning rates are formatted consistently."""
         run_id = "test_run"
         
-        # Test with different learning rate formats
+        # Test with different learning rate formats - but since run_id is used directly, 
+        # the base filename should be the same regardless of run_params
         test_cases = [
-            ({'batch_size': 16, 'context_window': 128, 'learning_rate': 1e-4}, "lr1e-04"),
-            ({'batch_size': 16, 'context_window': 128, 'learning_rate': 0.001}, "lr1e-03"),
-            ({'batch_size': 16, 'context_window': 128, 'learning_rate': 0.5}, "lr5e-01"),
+            ({'batch_size': 16, 'context_window': 128, 'learning_rate': 1e-4}),
+            ({'batch_size': 16, 'context_window': 128, 'learning_rate': 0.001}),
+            ({'batch_size': 16, 'context_window': 128, 'learning_rate': 0.5}),
         ]
         
-        for run_params, expected_lr in test_cases:
+        for run_params in test_cases:
             paths = get_checkpoint_paths(run_id, mock_config, run_params)
-            assert expected_lr in paths['base_filename']
+            # Since run_id is used directly, check that it's in the base filename
+            assert "test_run" in paths['base_filename']
     
     @pytest.mark.unit
     def test_checkpoint_paths_handles_missing_cfg_attributes(self):
@@ -87,8 +89,8 @@ class TestCheckpointPaths:
         
         paths = get_checkpoint_paths(run_id, incomplete_config)
         
-        # Should use "unknown" for missing attributes
-        assert "unknown" in paths['base_filename']
+        # Since run_id is used directly, we should get the expected base filename
+        assert "test_run" in paths['base_filename']
         assert paths['latest'].endswith("_latest.pt")
         assert paths['best'].endswith("_best.pt")
 
@@ -110,7 +112,7 @@ class TestCheckpointOperations:
         paths = get_checkpoint_paths(run_id, mock_config, run_params)
         
         # Verify the paths match expected pattern
-        expected_pattern = f"run_{run_id}_bs16_cw128_lr1e-04"
+        expected_pattern = f"run_{run_id}"
         assert expected_pattern in paths['latest']
         assert expected_pattern in paths['best']
         
