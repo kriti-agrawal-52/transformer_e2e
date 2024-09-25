@@ -17,21 +17,21 @@ TOKENIZER_NAME: "gpt2"
 # --- Data Loading Configuration ---
 # Set the maximum number of characters to use for training
 # This limits the dataset size for faster iteration, especially for tuning.
-RAW_TEXT_LIMIT: 10000000 # 10 Million characters
+RAW_TEXT_LIMIT: 20000000 # 10 Million characters
 
 RUN_MODE: "grid" # single or grid
 
 # --- TRAINING HYPERPARAMETERS FOR SINGLE RUN TRAINING---
-BATCH_SIZE: 12 #32
-CONTEXT_WINDOW: 16 #256
-CHANNEL_DIM: 128 #512
-NUM_HEADS: 4 #8
-NUM_LAYERS: 3 #8
+BATCH_SIZE: 32 #32
+CONTEXT_WINDOW: 256 #256
+CHANNEL_DIM: 512 #512
+NUM_HEADS: 8 #8
+NUM_LAYERS: 8 #8
 LEARNING_RATE: 3e-4
-TRAINING_STEPS: 1000 #30000
+TRAINING_STEPS: 30000 #30000
 
 MIN_DELTA: 0.001 # we should not make this value too small because we want to have meaningful improvement in our validation loss
-EVAL_ITERS_VAL: 10 # for calculating evaluation loss, we randomly take EVAL_ITERS_VAL batches of validation set, and take their average loss.
+EVAL_ITERS_VAL: 20 # for calculating evaluation loss, we randomly take EVAL_ITERS_VAL batches of validation set, and take their average loss.
 EVAL_ITERS_TEST: 20
 VALIDATION_CHECK_EVERY: 100
 DROPOUT_RATE: 0.1
