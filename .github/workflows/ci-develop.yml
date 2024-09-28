@@ -1,0 +1,277 @@
+# .github/workflows/ci-develop.yml - GitHub Actions CI/CD Workflow
+# ==============================================================
+#
+# WHAT IS GITHUB ACTIONS?
+# =======================
+# GitHub Actions is a CI/CD (Continuous Integration/Continuous Deployment) system.
+# It automatically runs tests and checks when you push code to GitHub.
+#
+# WHAT IS CI/CD?
+# ==============
+# CI (Continuous Integration): Automatically test code when changes are made
+# CD (Continuous Deployment): Automatically deploy code when tests pass
+#
+# HOW IT WORKS:
+# =============
+# 1. You push code to GitHub
+# 2. GitHub automatically runs this workflow file
+# 3. It creates virtual machines (runners) in the cloud
+# 4. Runs your tests and checks on those machines
+# 5. Reports success/failure back to GitHub
+#
+# WHY USE CI/CD?
+# ==============
+# - Catch bugs early (before they reach production)
+# - Ensure code quality standards
+# - Automate repetitive tasks
+# - Give confidence when merging code
+# - Document what checks are required
+
+name: CI/CD Pipeline - Develop # Name shown in GitHub Actions tab
+
+# WHEN TO RUN THIS WORKFLOW
+# =========================
+on:
+  push:
+    branches: [develop] # Run when code is pushed to develop branch
+  pull_request:
+    branches: [develop] # Run when someone creates a PR to develop branch
+
+# ENVIRONMENT VARIABLES
+# =====================
+# These are available to all jobs in this workflow
+env:
+  PYTHON_VERSION: "3.11" # Python version to use everywhere
+
+# JOBS SECTION
+# ============
+# A workflow can have multiple jobs that run in parallel or sequence
+# Each job runs on a separate virtual machine
+jobs:
+  # JOB 1: CODE QUALITY CHECKS
+  # ===========================
+  # This job checks that your code follows good practices
+  code-quality:
+    name: Code Quality Checks # Human-readable name for this job
+    runs-on: ubuntu-latest # Type of virtual machine to use
+
+    steps: # List of tasks to run in this job
+      # STEP 1: Get the code
+      - name: Checkout code
+        uses: actions/checkout@v4 # Pre-built action to download your repo
+
+      # STEP 2: Install Python
+      - name: Set up Python
+        uses: actions/setup-python@v4 # Pre-built action to install Python
+        with:
+          python-version: ${{ env.PYTHON_VERSION }} # Use our environment variable
+
+      # STEP 3: Cache dependencies (makes builds faster)
+      - name: Cache pip dependencies
+        uses: actions/cache@v3 # Pre-built action to cache files
+        with:
+          path: ~/.cache/pip # Where pip stores downloaded packages
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }} # Unique cache key
+          restore-keys: | # Fallback cache keys if exact match not found
+            ${{ runner.os }}-pip-
+
+      # STEP 4: Install your project's dependencies
+      - name: Install dependencies
+        run: | # Multi-line shell commands
+          python -m pip install --upgrade pip  # Update pip to latest version
+          pip install -r requirements.txt      # Install your project dependencies
+          pip install mypy                     # Install type checking tool
+
+      # STEP 5: Check code formatting
+      - name: Format check with Black
+        run: black --check . # Black checks if code is properly formatted
+        # If this fails, code formatting doesn't match Black's standards
+
+      # STEP 6: Check code for common issues
+      - name: Lint with Flake8
+        run: flake8 . # Flake8 finds style issues and potential bugs
+        # If this fails, there are style violations or code issues
+
+      # STEP 7: Check type annotations
+      - name: Type check with MyPy
+        run: mypy src/ --ignore-missing-imports || true # Check type hints
+        # "|| true" means continue even if this fails (non-blocking)
+
+  # JOB 2: TEST SUITE
+  # ==================
+  # This job runs your tests to make sure code works correctly
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+
+    # STRATEGY: MATRIX TESTING
+    # ========================
+    # This runs the same job multiple times with different parameters
+    # Creates separate jobs for unit, integration, and smoke tests
+    strategy:
+      matrix:
+        test-type: [unit, integration, smoke] # Run job 3 times with these values
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # CREATE DIRECTORIES YOUR TESTS EXPECT
+      # ====================================
+      - name: Create necessary directories
+        run: |
+          mkdir -p model_checkpoints  # For saving model files
+          mkdir -p train_eval_plots   # For saving training plots
+          mkdir -p data              # For data files
+
+      # RUN TESTS FOR THIS MATRIX VALUE
+      # ===============================
+      - name: Run ${{ matrix.test-type }} tests
+        run: pytest tests/${{ matrix.test-type }}/ -v --tb=short
+        # ${{ matrix.test-type }} gets replaced with unit/integration/smoke
+        # -v: verbose output, --tb=short: shorter error traces
+
+  # JOB 3: END-TO-END TESTS
+  # ========================
+  # These tests check that the entire system works together
+  # Only runs after code quality and basic tests pass
+  e2e-test:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [code-quality, test] # Wait for these jobs to complete successfully
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create necessary directories
+        run: |
+          mkdir -p model_checkpoints
+          mkdir -p train_eval_plots
+          mkdir -p data
+
+      - name: Run E2E tests
+        run: pytest tests/e2e/ -v --tb=short
+
+  # JOB 4: BUILD PYTHON PACKAGE
+  # ============================
+  # This checks that your code can be packaged and distributed
+  build-package:
+    name: Build Python Package
+    runs-on: ubuntu-latest
+    needs: [code-quality, test] # Only run if quality and tests pass
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine  # Tools for building and checking packages
+
+      # BUILD THE PACKAGE
+      # =================
+      - name: Build package
+        run: python -m build # Creates wheel and source distribution
+        # This creates files in dist/ directory
+
+      # CHECK PACKAGE QUALITY
+      # ====================
+      - name: Check package
+        run: twine check dist/* # Validates package metadata and structure
+
+      # SAVE BUILD ARTIFACTS
+      # ===================
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3 # Save files for later download
+        with:
+          name: python-package # Name for the artifact
+          path: dist/ # What files to save
+
+  # JOB 5: SECURITY SCANNING
+  # =========================
+  # This checks for security vulnerabilities in your code and dependencies
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety bandit  # Security scanning tools
+
+      # CHECK DEPENDENCIES FOR KNOWN VULNERABILITIES
+      # ============================================
+      - name: Check dependencies for security vulnerabilities
+        run: safety check # Checks if any dependencies have known security issues
+
+      # SCAN CODE FOR SECURITY ISSUES
+      # =============================
+      - name: Run bandit security scan
+        run: bandit -r src/ -f json -o bandit-report.json || true
+        # bandit: scans Python code for security issues
+        # -r src/: recursively scan src directory
+        # -f json: output in JSON format
+        # -o: save to file
+        # || true: continue even if issues found (just report them)
+
+      # SAVE SECURITY REPORT
+      # ===================
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report # Name for the artifact
+          path: bandit-report.json # Security scan results
+
+# WORKFLOW SUMMARY:
+# ================
+# This workflow provides comprehensive checking:
+# 1. Code quality (formatting, style, types)
+# 2. Testing (unit, integration, smoke, e2e)
+# 3. Package building (can it be distributed?)
+# 4. Security scanning (any vulnerabilities?)
+#
+# If all checks pass, you can be confident the code is ready to merge!
