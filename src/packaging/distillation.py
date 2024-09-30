@@ -591,18 +591,11 @@ class ModelDistiller:
             
         student_model = self.student_models[student_name]
         
-        # Check if we should use memory-efficient mode
+        # Use the same batch-wise approach as base training (no gradient accumulation needed)
+        logger.info("Using batch-wise training approach (same as base model training)")
         use_memory_efficient = should_use_memory_efficient_mode()
         if use_memory_efficient:
-            logger.info("Using memory-efficient training mode for T4 GPU")
-            effective_batch_size = self.config.batch_size
-            micro_batch_size = MEMORY_EFFICIENT_BATCH_SIZE
-            accumulation_steps = max(1, effective_batch_size // micro_batch_size)
-            logger.info(f"Gradient accumulation: {accumulation_steps} steps, micro-batch size: {micro_batch_size}")
-            logger.info("Memory optimizations enabled: CPU offloading, gradient accumulation, chunked loss computation")
-        else:
-            accumulation_steps = 1
-            micro_batch_size = self.config.batch_size
+            logger.info("Memory optimizations enabled: CPU offloading, chunked loss computation")
         
         try:
             logger.info("DEBUG: Creating optimizer...")
@@ -629,96 +622,74 @@ class ModelDistiller:
             logger.info("DEBUG: Data generator created successfully")
             
             logger.info("DEBUG: Starting training loop...")
-            accumulated_loss = 0.0
-            accumulated_components = {"distillation_loss": 0.0, "ground_truth_loss": 0.0}
             
             for step in range(max_steps):
                 student_model.train()
                 
-                # Gradient accumulation loop
-                for accum_step in range(accumulation_steps):
-                    # Get a batch
-                    try:
-                        logger.info(f"DEBUG: Getting batch for step {step}, accum {accum_step}...")
-                        inputs, targets = next(train_data_gen)
-                        logger.info(f"DEBUG: Batch retrieved successfully for step {step}")
-                    except StopIteration:
-                        # If we've exhausted the dataloader, break
-                        logger.info(f"Exhausted training data at step {step}")
-                        break
-                        
-                    # Ensure inputs are long type for embedding layers
-                    inputs, targets = inputs.to(self.device).long(), targets.to(self.device).long()
+                # Get a batch (same as base training approach)
+                try:
+                    logger.info(f"DEBUG: Getting batch for step {step}...")
+                    inputs, targets = next(train_data_gen)
+                    logger.info(f"DEBUG: Batch retrieved successfully for step {step}")
+                except StopIteration:
+                    # If we've exhausted the dataloader, break
+                    logger.info(f"Exhausted training data at step {step}")
+                    break
                     
-                    # For memory efficiency, use smaller batch if needed
-                    if use_memory_efficient and inputs.size(0) > micro_batch_size:
-                        inputs = inputs[:micro_batch_size]
-                        targets = targets[:micro_batch_size]
-                    
-                    logger.info(f"DEBUG: Getting teacher predictions for step {step}...")
-                    # Get predictions from both models with memory optimization
-                    with torch.no_grad():
-                        teacher_logits, _ = self.teacher_model(inputs, targets)
-                        # Move teacher logits to CPU to free GPU memory if needed
-                        if use_memory_efficient:
-                            teacher_logits = teacher_logits.cpu()
-                    logger.info(f"DEBUG: Teacher predictions obtained for step {step}, shape: {teacher_logits.shape}")
-                        
-                    logger.info(f"DEBUG: Getting student predictions for step {step}...")
-                    student_logits, _ = student_model(inputs, targets)
-                    logger.info(f"DEBUG: Student predictions obtained for step {step}, shape: {student_logits.shape}")
-                    
-                    logger.info(f"DEBUG: Computing distillation loss for step {step}...")
-                    # Move teacher logits back to GPU for loss computation if needed
-                    if use_memory_efficient:
-                        teacher_logits = teacher_logits.to(self.device)
-                    
-                    # Compute distillation loss
-                    loss, loss_components = self.distillation_loss(
-                        student_logits, teacher_logits, targets
-                    )
-                    
-                    # Scale loss by accumulation steps
-                    loss = loss / accumulation_steps
-                    
-                    logger.info(f"DEBUG: Distillation loss computed for step {step}")
-                    
-                    # Backward pass (accumulate gradients)
-                    loss.backward()
-                    
-                    # Accumulate loss components
-                    accumulated_loss += loss.item()
-                    accumulated_components["distillation_loss"] += loss_components["distillation_loss"] / accumulation_steps
-                    accumulated_components["ground_truth_loss"] += loss_components["ground_truth_loss"] / accumulation_steps
-                    
-                    # Clear intermediate tensors to save memory
-                    del inputs, targets, teacher_logits, student_logits, loss
-                    if use_memory_efficient:
-                        clear_gpu_cache()
-                        if accum_step == 0:  # Log memory usage once per step
-                            log_memory_usage(step, f"after accumulation step {accum_step}")
+                # Ensure inputs are long type for embedding layers
+                inputs, targets = inputs.to(self.device).long(), targets.to(self.device).long()
                 
-                # Update parameters after accumulation
+                logger.info(f"DEBUG: Getting teacher predictions for step {step}...")
+                # Get predictions from both models with memory optimization
+                with torch.no_grad():
+                    teacher_logits, _ = self.teacher_model(inputs, targets)
+                    # Move teacher logits to CPU to free GPU memory if needed
+                    if use_memory_efficient:
+                        teacher_logits = teacher_logits.cpu()
+                logger.info(f"DEBUG: Teacher predictions obtained for step {step}, shape: {teacher_logits.shape}")
+                    
+                logger.info(f"DEBUG: Getting student predictions for step {step}...")
+                student_logits, _ = student_model(inputs, targets)
+                logger.info(f"DEBUG: Student predictions obtained for step {step}, shape: {student_logits.shape}")
+                
+                logger.info(f"DEBUG: Computing distillation loss for step {step}...")
+                # Move teacher logits back to GPU for loss computation if needed
+                if use_memory_efficient:
+                    teacher_logits = teacher_logits.to(self.device)
+                
+                # Compute distillation loss
+                loss, loss_components = self.distillation_loss(
+                    student_logits, teacher_logits, targets
+                )
+                
+                logger.info(f"DEBUG: Distillation loss computed for step {step}")
+                
+                # Backward pass (same as base training)
+                optimizer.zero_grad()
+                loss.backward()
+                
                 # Gradient clipping for stability
                 torch.nn.utils.clip_grad_norm_(student_model.parameters(), 1.0)
                 
                 optimizer.step()
-                optimizer.zero_grad()
                 
                 # Store metrics for manager to log
                 step_metrics = {
                     "step": step,
-                    "train_loss": accumulated_loss,
-                    "distillation_loss": accumulated_components["distillation_loss"],
-                    "ground_truth_loss": accumulated_components["ground_truth_loss"],
+                    "train_loss": loss.item(),
+                    "distillation_loss": loss_components["distillation_loss"],
+                    "ground_truth_loss": loss_components["ground_truth_loss"],
                     "learning_rate": optimizer.param_groups[0]['lr'],
                     "gpu_memory_gb": get_gpu_memory_usage()
                 }
                 training_metrics.append(step_metrics)
                 
-                # Reset accumulation
-                accumulated_loss = 0.0
-                accumulated_components = {"distillation_loss": 0.0, "ground_truth_loss": 0.0}
+                # Clear intermediate tensors to save memory
+                del inputs, targets, teacher_logits, student_logits, loss
+                if use_memory_efficient:
+                    clear_gpu_cache()
+                    if step % 10 == 0:  # Log memory usage every 10 steps
+                        log_memory_usage(step, "after training step")
                 
                 # Validation check every 100 steps
                 if step % 100 == 0:
@@ -808,7 +779,7 @@ class ModelDistiller:
                     inputs, targets = inputs.to(self.device).long(), targets.to(self.device).long()
                     
                     # Get student predictions
-                    student_logits, _ = student_model(inputs)
+                    student_logits, _ = student_model(inputs, targets)
                     
                     # Compute standard cross-entropy loss for evaluation
                     loss = F.cross_entropy(
@@ -818,6 +789,11 @@ class ModelDistiller:
                     
                     total_loss += loss.item()
                     num_batches += 1
+                    
+                    # Clean up for memory efficiency
+                    del inputs, targets, student_logits, loss
+                    clear_gpu_cache()
+                    
                 except StopIteration:
                     break
                 

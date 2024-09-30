@@ -83,7 +83,7 @@ optimization:
   distillation:
     # Training parameters for normal distillation
     learning_rate: 0.0001
-    batch_size: 8 # Reduced for memory efficiency on T4 GPU
+    batch_size: 32
     num_epochs: 10
     patience: 3 # Early stopping patience
 
@@ -132,7 +132,7 @@ optimization:
     # QAD requires different parameters than normal distillation
     # Lower learning rate due to quantization noise
     learning_rate: 0.00005 # Half of normal distillation
-    batch_size: 8 # Reduced for memory efficiency on T4 GPU
+    batch_size: 32
     num_epochs: 15 # More epochs for QAD convergence
     patience: 5 # More patience for QAD
 
@@ -186,7 +186,7 @@ optimization:
     # Note: When doing combined distillation + quantization, QAT happens during
     # the distillation training using the same epochs and learning rate as distillation
     qat:
-      batch_size: 8 # Reduced for memory efficiency on T4 GPU
+      batch_size: 32
 
     # Dynamic quantization settings (optional)
     dynamic:
