@@ -708,11 +708,19 @@ class ModelDistiller:
                         
                         # Save best model
                         save_path = os.path.join(save_dir, f"{student_name}_best.pt")
+                        
+                        # Get student architecture info safely from SimpleNamespace
+                        student_architectures = getattr(self.config, 'student_architectures', None)
+                        if student_architectures and hasattr(student_architectures, student_name):
+                            architecture_info = getattr(student_architectures, student_name, {})
+                        else:
+                            architecture_info = {}
+                        
                         self._save_student_model(student_model, save_path, {
                             "step": step,
                             "val_loss": val_loss,
                             "student_name": student_name,
-                            "architecture": getattr(self.config, 'student_architectures', {}).get(student_name, {})
+                            "architecture": architecture_info
                         })
                         
                         logger.info(f"New best validation loss: {val_loss:.4f} at step {step}")
@@ -985,11 +993,19 @@ class ModelDistiller:
                     # Save best model (convert to quantized first)
                     quantized_model = self._convert_qat_to_quantized(student_model)
                     save_path = os.path.join(save_dir, f"{student_name}_qad_best.pt")
+                    
+                    # Get student architecture info safely from SimpleNamespace
+                    student_architectures = getattr(self.config, 'student_architectures', None)
+                    if student_architectures and hasattr(student_architectures, student_name):
+                        architecture_info = getattr(student_architectures, student_name, {})
+                    else:
+                        architecture_info = {}
+                    
                     self._save_student_model(quantized_model, save_path, {
                         "step": step,
                         "val_loss": val_loss,
                         "student_name": student_name,
-                        "architecture": getattr(self.config, 'student_architectures', {}).get(student_name, {}),
+                        "architecture": architecture_info,
                         "quantization_aware": True,
                         "backend": quantization_config.get('backend', 'fbgemm')
                     })
