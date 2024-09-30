@@ -1,0 +1,1401 @@
+2025-06-13 23:48:43,563 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-13 23:48:43,565 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-13 23:48:43,565 - __main__ - INFO - Loading and validating configuration...
+2025-06-13 23:48:43,643 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-13 23:48:43,645 - __main__ - INFO - Enabled optimization methods: distillation, quantization, combined
+2025-06-13 23:48:43,647 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-13 23:48:43,648 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation, quantization, combined | Output: packaged_models
+2025-06-13 23:48:43,648 - __main__ - INFO - Starting packaging pipeline...
+2025-06-13 23:48:43,648 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-13 23:48:43,648 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-13 23:48:43,648 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-13 23:48:43,649 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-13 23:48:43,649 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-13 23:48:43,649 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-13 23:48:43,650 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-13 23:48:43,650 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-13 23:48:43,650 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-13 23:48:43,650 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-13 23:48:43,656 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-13 23:48:43,656 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-13 23:48:43,656 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-13 23:48:43,656 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-13 23:48:43,656 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-13 23:48:43,668 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-13 23:48:56,213 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-13 23:48:56,391 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-13 23:48:56,391 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-13 23:48:57,558 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-13 23:49:17,624 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-13 23:49:17,931 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-13 23:49:17,931 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-13 23:49:17,932 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-13 23:49:17,932 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-13 23:49:17,941 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-13 23:49:17,941 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-13 23:49:17,942 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-13 23:49:17,942 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-13 23:49:17,942 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-13 23:49:17,942 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-13 23:49:29,004 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-13 23:49:30,981 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-13 23:49:31,965 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-13 23:49:32,139 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-13 23:49:32,140 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-13 23:49:32,140 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-13 23:49:32,141 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-13 23:49:32,142 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-13 23:49:32,143 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-13 23:49:32,143 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-13 23:49:32,276 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-13 23:49:32,467 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-13 23:49:32,467 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-13 23:49:32,588 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-13 23:49:32,746 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-13 23:49:32,747 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-13 23:49:32,748 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-13 23:49:32,749 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-13 23:49:32,749 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-13 23:49:32,749 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-13 23:49:32,750 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-13 23:49:32,750 - src.packaging.distillation - INFO - ============================================================
+2025-06-13 23:49:32,750 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-13 23:49:32,751 - src.packaging.distillation - ERROR - Failed to distill small student: '<=' not supported between instances of 'float' and 'str'
+2025-06-13 23:49:32,751 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-13 23:49:32,757 - src.packaging.distillation - INFO - DISTILLING TINY STUDENT MODEL
+2025-06-13 23:49:32,758 - src.packaging.distillation - INFO - ============================================================
+2025-06-13 23:49:32,758 - src.packaging.distillation - INFO - Starting distillation for tiny student model...
+2025-06-13 23:49:32,759 - src.packaging.distillation - ERROR - Failed to distill tiny student: '<=' not supported between instances of 'float' and 'str'
+2025-06-13 23:49:32,760 - src.packaging.distillation - INFO - 
+Distillation completed for all students!
+2025-06-13 23:49:32,761 - src.packaging.model_variants - WARNING - Skipping failed distillation: small
+2025-06-13 23:49:32,764 - src.packaging.model_variants - WARNING - Skipping failed distillation: tiny
+2025-06-13 23:49:32,764 - src.packaging.model_variants - INFO - Created 0 distilled variants
+2025-06-13 23:49:32,765 - src.packaging.model_variants - INFO - ✓ Created 0 distilled variants
+2025-06-13 23:49:32,765 - src.packaging.model_variants - INFO - Creating quantized variants...
+2025-06-13 23:49:32,765 - src.packaging.model_variants - INFO - Creating quantized model variants...
+2025-06-13 23:49:32,950 - src.packaging.quantization - INFO - Creating quantized variants | Dynamic, PTQ, QAT...
+2025-06-13 23:49:32,950 - src.packaging.quantization - INFO - Running dynamic quantization...
+2025-06-13 23:49:33,277 - src.packaging.quantization - INFO - Starting dynamic quantization...
+2025-06-13 23:49:42,263 - src.packaging.quantization - INFO - Dynamic quantization | 295.21MB → 149.63MB | 1.97x compression | 49.3% reduction
+2025-06-13 23:49:46,603 - src.packaging.quantization - INFO - Saved quantized model to packaged_models/quantized/dynamic_quantized.pt
+2025-06-13 23:49:46,605 - src.packaging.quantization - INFO - Dynamic quantization completed successfully
+2025-06-13 23:49:49,676 - src.packaging.quantization - INFO - ✓ Dynamic quantization | Compression: 1.97x
+2025-06-13 23:49:49,677 - src.packaging.quantization - INFO - Running post-training quantization...
+2025-06-13 23:49:49,854 - src.packaging.quantization - INFO - Starting post-training quantization...
+2025-06-13 23:49:49,857 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-13 23:49:49,950 - src.packaging.quantization - INFO - Calibrating with 100 samples...
+2025-06-13 23:49:49,950 - src.packaging.quantization - ERROR - Post-training quantization failed: 'function' object is not iterable
+2025-06-13 23:49:49,951 - src.packaging.quantization - INFO - Running quantization-aware training...
+2025-06-13 23:49:50,791 - src.packaging.quantization - INFO - Starting quantization-aware training...
+2025-06-13 23:49:50,794 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-13 23:49:52,163 - src.packaging.quantization - ERROR - Quantization-aware training failed: '<=' not supported between instances of 'float' and 'NoneType'
+2025-06-13 23:49:52,166 - src.packaging.quantization - INFO - Quantization completed | Methods: 1/3 successful
+2025-06-13 23:49:52,228 - src.packaging.model_variants - WARNING - Skipping failed quantization: ptq
+2025-06-13 23:49:52,228 - src.packaging.model_variants - WARNING - Skipping failed quantization: qat
+2025-06-13 23:49:52,229 - src.packaging.model_variants - INFO - Created 1 quantized variants
+2025-06-13 23:49:52,231 - src.packaging.model_variants - INFO - ✓ Created 1 quantized variants
+2025-06-13 23:49:52,231 - src.packaging.model_variants - INFO - Creating combined variants...
+2025-06-13 23:49:52,232 - src.packaging.model_variants - INFO - Creating combined variants using quantization-aware distillation...
+2025-06-13 23:49:52,235 - src.packaging.quantization_aware_distillation - INFO - Teacher model set for QAD | Parameters: 76,852,305
+2025-06-13 23:49:52,236 - src.packaging.quantization_aware_distillation - INFO - Creating student models for quantization-aware distillation...
+2025-06-13 23:49:52,236 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: small with {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-13 23:49:52,401 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 4 layers.
+2025-06-13 23:49:52,862 - src.packaging.quantization_aware_distillation - INFO - QAD Small student parameters: 45,839,953
+2025-06-13 23:49:52,862 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: tiny with {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-13 23:49:52,974 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 2 layers.
+2025-06-13 23:49:53,112 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny student parameters: 27,425,873
+2025-06-13 23:49:53,115 - src.packaging.quantization_aware_distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-13 23:49:53,115 - src.packaging.quantization_aware_distillation - INFO - QAD Small compression ratio: 1.68x
+2025-06-13 23:49:53,116 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny compression ratio: 2.80x
+2025-06-13 23:49:53,118 - src.packaging.model_variants - INFO - Creating QAD variant: small
+2025-06-13 23:49:53,119 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for small student model...
+2025-06-13 23:49:53,501 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-13 23:49:53,502 - src.packaging.model_variants - ERROR - Failed to create QAD variant for small: '<=' not supported between instances of 'float' and 'str'
+2025-06-13 23:49:53,502 - src.packaging.model_variants - INFO - Creating QAD variant: tiny
+2025-06-13 23:49:53,503 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for tiny student model...
+2025-06-13 23:49:53,726 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-13 23:49:53,727 - src.packaging.model_variants - ERROR - Failed to create QAD variant for tiny: '<=' not supported between instances of 'float' and 'str'
+2025-06-13 23:49:53,727 - src.packaging.model_variants - INFO - Created 0 quantization-aware distilled variants
+2025-06-13 23:49:53,728 - src.packaging.model_variants - INFO - ✓ Created 0 combined variants
+2025-06-13 23:49:53,728 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-13 23:49:53,728 - src.packaging.model_variants - INFO - Benchmarking 1 model variants...
+2025-06-13 23:49:53,729 - src.packaging.benchmarking - INFO - Benchmarking 1 model variants
+2025-06-13 23:49:53,729 - src.packaging.benchmarking - INFO - Benchmarking quantized_dynamic...
+2025-06-13 23:49:53,731 - src.packaging.benchmarking - ERROR - Failed to benchmark quantized_dynamic: 'checkpoint_path'
+2025-06-13 23:49:53,734 - src.packaging.benchmarking - INFO - Benchmarking completed | Results saved to packaged_models/benchmark_results
+2025-06-13 23:49:53,735 - src.packaging.model_variants - INFO - Benchmarking completed successfully
+2025-06-13 23:49:53,735 - src.packaging.model_variants - INFO - ✓ Benchmarking completed for 0 variants
+2025-06-13 23:49:53,736 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-13 23:49:53,737 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-13 23:49:53,744 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-13 23:49:53,751 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-13 23:49:53,752 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-13 23:49:53,753 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 1 | Baseline params: 76,852,305 | Best compression: 2.9x | Location: packaged_models
+2025-06-13 23:49:53,754 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-13 23:49:53,757 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 1 | Baseline params: 76,852,305
+2025-06-13 23:49:53,757 - __main__ - INFO - Results saved to: packaged_models
+2025-06-13 23:49:54,217 - __main__ - INFO - PIPELINE COMPLETED | Variants: 1 | Location: packaged_models
+2025-06-14 00:01:46,904 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 00:01:46,906 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 00:01:46,906 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 00:01:46,994 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 00:01:46,994 - __main__ - INFO - Enabled optimization methods: distillation, quantization, combined
+2025-06-14 00:01:46,994 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 00:01:46,994 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation, quantization, combined | Output: packaged_models
+2025-06-14 00:01:46,995 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 00:01:46,996 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 00:01:46,996 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 00:01:46,996 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 00:01:46,996 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 00:01:46,997 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 00:01:46,997 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 00:01:47,005 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 00:01:47,005 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 00:01:47,005 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 00:01:47,006 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 00:01:47,006 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 00:01:47,006 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 00:01:47,006 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 00:01:47,006 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 00:01:47,006 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 00:01:47,018 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 00:01:58,610 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 00:01:58,829 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 00:01:58,829 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 00:02:00,075 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 00:02:19,628 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 00:02:19,887 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 00:02:19,887 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 00:02:19,888 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 00:02:19,888 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 00:02:19,897 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 00:02:19,898 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 00:02:19,898 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 00:02:19,899 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 00:02:19,899 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 00:02:19,899 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 00:02:30,803 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 00:02:33,211 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 00:02:34,312 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 00:02:34,474 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 00:02:34,475 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 00:02:34,475 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-14 00:02:34,476 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-14 00:02:34,477 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-14 00:02:34,478 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-14 00:02:34,478 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:02:34,616 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-14 00:02:34,940 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-14 00:02:34,940 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:02:35,123 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-14 00:02:35,313 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-14 00:02:35,316 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:02:35,316 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-14 00:02:35,317 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-14 00:02:35,317 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-14 00:02:35,317 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:02:35,318 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-14 00:02:35,319 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:02:35,319 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-14 00:02:35,319 - src.packaging.distillation - ERROR - Failed to distill small student: '<=' not supported between instances of 'float' and 'str'
+2025-06-14 00:02:35,320 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:02:35,320 - src.packaging.distillation - INFO - DISTILLING TINY STUDENT MODEL
+2025-06-14 00:02:35,322 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:02:35,322 - src.packaging.distillation - INFO - Starting distillation for tiny student model...
+2025-06-14 00:02:35,323 - src.packaging.distillation - ERROR - Failed to distill tiny student: '<=' not supported between instances of 'float' and 'str'
+2025-06-14 00:02:35,325 - src.packaging.distillation - INFO - 
+Distillation completed for all students!
+2025-06-14 00:02:35,325 - src.packaging.model_variants - WARNING - Skipping failed distillation: small
+2025-06-14 00:02:35,327 - src.packaging.model_variants - WARNING - Skipping failed distillation: tiny
+2025-06-14 00:02:35,328 - src.packaging.model_variants - INFO - Created 0 distilled variants
+2025-06-14 00:02:35,328 - src.packaging.model_variants - INFO - ✓ Created 0 distilled variants
+2025-06-14 00:02:35,333 - src.packaging.model_variants - INFO - Creating quantized variants...
+2025-06-14 00:02:35,336 - src.packaging.model_variants - INFO - Creating quantized model variants...
+2025-06-14 00:02:35,585 - src.packaging.quantization - INFO - Creating quantized variants | Dynamic, PTQ, QAT...
+2025-06-14 00:02:35,585 - src.packaging.quantization - INFO - Running dynamic quantization...
+2025-06-14 00:02:36,035 - src.packaging.quantization - INFO - Starting dynamic quantization...
+2025-06-14 00:02:41,194 - src.packaging.quantization - INFO - Dynamic quantization | 295.21MB → 149.63MB | 1.97x compression | 49.3% reduction
+2025-06-14 00:02:43,210 - src.packaging.quantization - INFO - Saved quantized model to packaged_models/quantized/dynamic_quantized.pt
+2025-06-14 00:02:43,211 - src.packaging.quantization - INFO - Dynamic quantization completed successfully
+2025-06-14 00:02:45,557 - src.packaging.quantization - INFO - ✓ Dynamic quantization | Compression: 1.97x
+2025-06-14 00:02:45,558 - src.packaging.quantization - INFO - Running post-training quantization...
+2025-06-14 00:02:45,737 - src.packaging.quantization - INFO - Starting post-training quantization...
+2025-06-14 00:02:45,739 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:02:45,820 - src.packaging.quantization - INFO - Calibrating with 100 samples...
+2025-06-14 00:02:45,822 - src.packaging.quantization - ERROR - Post-training quantization failed: 'function' object is not iterable
+2025-06-14 00:02:45,823 - src.packaging.quantization - INFO - Running quantization-aware training...
+2025-06-14 00:02:46,033 - src.packaging.quantization - INFO - Starting quantization-aware training...
+2025-06-14 00:02:46,036 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:02:46,730 - src.packaging.quantization - ERROR - Quantization-aware training failed: '<=' not supported between instances of 'float' and 'NoneType'
+2025-06-14 00:02:46,731 - src.packaging.quantization - INFO - Quantization completed | Methods: 1/3 successful
+2025-06-14 00:02:46,797 - src.packaging.model_variants - WARNING - Skipping failed quantization: ptq
+2025-06-14 00:02:46,797 - src.packaging.model_variants - WARNING - Skipping failed quantization: qat
+2025-06-14 00:02:46,798 - src.packaging.model_variants - INFO - Created 1 quantized variants
+2025-06-14 00:02:46,798 - src.packaging.model_variants - INFO - ✓ Created 1 quantized variants
+2025-06-14 00:02:46,799 - src.packaging.model_variants - INFO - Creating combined variants...
+2025-06-14 00:02:46,799 - src.packaging.model_variants - INFO - Creating combined variants using quantization-aware distillation...
+2025-06-14 00:02:46,801 - src.packaging.quantization_aware_distillation - INFO - Teacher model set for QAD | Parameters: 76,852,305
+2025-06-14 00:02:46,804 - src.packaging.quantization_aware_distillation - INFO - Creating student models for quantization-aware distillation...
+2025-06-14 00:02:46,805 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: small with {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:02:46,984 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 4 layers.
+2025-06-14 00:02:47,222 - src.packaging.quantization_aware_distillation - INFO - QAD Small student parameters: 45,839,953
+2025-06-14 00:02:47,223 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: tiny with {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:02:47,347 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 2 layers.
+2025-06-14 00:02:47,480 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny student parameters: 27,425,873
+2025-06-14 00:02:47,481 - src.packaging.quantization_aware_distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:02:47,482 - src.packaging.quantization_aware_distillation - INFO - QAD Small compression ratio: 1.68x
+2025-06-14 00:02:47,482 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny compression ratio: 2.80x
+2025-06-14 00:02:47,483 - src.packaging.model_variants - INFO - Creating QAD variant: small
+2025-06-14 00:02:47,483 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for small student model...
+2025-06-14 00:02:47,855 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:02:47,855 - src.packaging.model_variants - ERROR - Failed to create QAD variant for small: '<=' not supported between instances of 'float' and 'str'
+2025-06-14 00:02:47,856 - src.packaging.model_variants - INFO - Creating QAD variant: tiny
+2025-06-14 00:02:47,856 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for tiny student model...
+2025-06-14 00:02:48,075 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:02:48,076 - src.packaging.model_variants - ERROR - Failed to create QAD variant for tiny: '<=' not supported between instances of 'float' and 'str'
+2025-06-14 00:02:48,076 - src.packaging.model_variants - INFO - Created 0 quantization-aware distilled variants
+2025-06-14 00:02:48,077 - src.packaging.model_variants - INFO - ✓ Created 0 combined variants
+2025-06-14 00:02:48,079 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-14 00:02:48,080 - src.packaging.model_variants - INFO - Benchmarking 1 model variants...
+2025-06-14 00:02:48,081 - src.packaging.benchmarking - INFO - Benchmarking 1 model variants
+2025-06-14 00:02:48,083 - src.packaging.benchmarking - INFO - Benchmarking quantized_dynamic...
+2025-06-14 00:02:48,083 - src.packaging.benchmarking - ERROR - Failed to benchmark quantized_dynamic: 'checkpoint_path'
+2025-06-14 00:02:48,084 - src.packaging.benchmarking - INFO - Benchmarking completed | Results saved to packaged_models/benchmark_results
+2025-06-14 00:02:48,084 - src.packaging.model_variants - INFO - Benchmarking completed successfully
+2025-06-14 00:02:48,084 - src.packaging.model_variants - INFO - ✓ Benchmarking completed for 0 variants
+2025-06-14 00:02:48,085 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-14 00:02:48,085 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-14 00:02:48,095 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-14 00:02:48,097 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-14 00:02:48,098 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-14 00:02:48,098 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 1 | Baseline params: 76,852,305 | Best compression: 2.9x | Location: packaged_models
+2025-06-14 00:02:48,101 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-14 00:02:48,102 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 1 | Baseline params: 76,852,305
+2025-06-14 00:02:48,107 - __main__ - INFO - Results saved to: packaged_models
+2025-06-14 00:02:48,432 - __main__ - INFO - PIPELINE COMPLETED | Variants: 1 | Location: packaged_models
+2025-06-14 00:04:30,521 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 00:04:30,523 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 00:04:30,523 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 00:04:30,547 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 00:04:30,548 - __main__ - INFO - Enabled optimization methods: distillation, quantization, combined
+2025-06-14 00:04:30,548 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 00:04:30,548 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation, quantization, combined | Output: packaged_models
+2025-06-14 00:04:30,548 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 00:04:30,549 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 00:04:30,549 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 00:04:30,549 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 00:04:30,549 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 00:04:30,550 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 00:04:30,550 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 00:04:30,550 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 00:04:30,550 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 00:04:30,550 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 00:04:30,551 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 00:04:30,551 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 00:04:30,551 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 00:04:30,551 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 00:04:30,551 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 00:04:30,551 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 00:04:30,562 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 00:04:42,054 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 00:04:42,229 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 00:04:42,229 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 00:04:43,350 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 00:05:02,251 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 00:05:02,478 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 00:05:02,479 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 00:05:02,479 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 00:05:02,480 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 00:05:02,492 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 00:05:02,492 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 00:05:02,494 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 00:05:02,494 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 00:05:02,494 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 00:05:02,494 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 00:05:13,732 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 00:05:16,513 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 00:05:17,705 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 00:05:17,935 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 00:05:17,937 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 00:05:17,938 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-14 00:05:17,940 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-14 00:05:17,946 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-14 00:05:17,948 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-14 00:05:17,948 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:05:18,148 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-14 00:05:18,355 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-14 00:05:18,355 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:05:18,481 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-14 00:05:18,631 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-14 00:05:18,632 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:05:18,633 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-14 00:05:18,636 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-14 00:05:18,638 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-14 00:05:18,639 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:05:18,640 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-14 00:05:18,640 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:05:18,640 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-14 00:05:20,678 - src.packaging.distillation - ERROR - Failed to distill small student: 'function' object is not iterable
+2025-06-14 00:05:20,679 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:05:20,679 - src.packaging.distillation - INFO - DISTILLING TINY STUDENT MODEL
+2025-06-14 00:05:20,680 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:05:20,680 - src.packaging.distillation - INFO - Starting distillation for tiny student model...
+2025-06-14 00:05:20,681 - src.packaging.distillation - ERROR - Failed to distill tiny student: 'function' object is not iterable
+2025-06-14 00:05:20,681 - src.packaging.distillation - INFO - 
+Distillation completed for all students!
+2025-06-14 00:05:20,682 - src.packaging.model_variants - WARNING - Skipping failed distillation: small
+2025-06-14 00:05:20,682 - src.packaging.model_variants - WARNING - Skipping failed distillation: tiny
+2025-06-14 00:05:20,683 - src.packaging.model_variants - INFO - Created 0 distilled variants
+2025-06-14 00:05:20,684 - src.packaging.model_variants - INFO - ✓ Created 0 distilled variants
+2025-06-14 00:05:20,685 - src.packaging.model_variants - INFO - Creating quantized variants...
+2025-06-14 00:05:20,688 - src.packaging.model_variants - INFO - Creating quantized model variants...
+2025-06-14 00:05:20,870 - src.packaging.quantization - INFO - Creating quantized variants | Dynamic, PTQ, QAT...
+2025-06-14 00:05:20,871 - src.packaging.quantization - INFO - Running dynamic quantization...
+2025-06-14 00:05:21,595 - src.packaging.quantization - INFO - Starting dynamic quantization...
+2025-06-14 00:05:27,160 - src.packaging.quantization - INFO - Dynamic quantization | 295.21MB → 149.63MB | 1.97x compression | 49.3% reduction
+2025-06-14 00:05:29,421 - src.packaging.quantization - INFO - Saved quantized model to packaged_models/quantized/dynamic_quantized.pt
+2025-06-14 00:05:29,421 - src.packaging.quantization - INFO - Dynamic quantization completed successfully
+2025-06-14 00:05:31,723 - src.packaging.quantization - INFO - ✓ Dynamic quantization | Compression: 1.97x
+2025-06-14 00:05:31,726 - src.packaging.quantization - INFO - Running post-training quantization...
+2025-06-14 00:05:31,887 - src.packaging.quantization - INFO - Starting post-training quantization...
+2025-06-14 00:05:31,889 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:05:31,966 - src.packaging.quantization - INFO - Calibrating with 100 samples...
+2025-06-14 00:05:31,966 - src.packaging.quantization - ERROR - Post-training quantization failed: 'function' object is not iterable
+2025-06-14 00:05:31,967 - src.packaging.quantization - INFO - Running quantization-aware training...
+2025-06-14 00:05:32,147 - src.packaging.quantization - INFO - Starting quantization-aware training...
+2025-06-14 00:05:32,149 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:05:32,850 - src.packaging.quantization - ERROR - Quantization-aware training failed: '<=' not supported between instances of 'float' and 'NoneType'
+2025-06-14 00:05:32,850 - src.packaging.quantization - INFO - Quantization completed | Methods: 1/3 successful
+2025-06-14 00:05:32,901 - src.packaging.model_variants - WARNING - Skipping failed quantization: ptq
+2025-06-14 00:05:32,901 - src.packaging.model_variants - WARNING - Skipping failed quantization: qat
+2025-06-14 00:05:32,902 - src.packaging.model_variants - INFO - Created 1 quantized variants
+2025-06-14 00:05:32,902 - src.packaging.model_variants - INFO - ✓ Created 1 quantized variants
+2025-06-14 00:05:32,902 - src.packaging.model_variants - INFO - Creating combined variants...
+2025-06-14 00:05:32,903 - src.packaging.model_variants - INFO - Creating combined variants using quantization-aware distillation...
+2025-06-14 00:05:32,905 - src.packaging.quantization_aware_distillation - INFO - Teacher model set for QAD | Parameters: 76,852,305
+2025-06-14 00:05:32,905 - src.packaging.quantization_aware_distillation - INFO - Creating student models for quantization-aware distillation...
+2025-06-14 00:05:32,906 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: small with {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:05:33,085 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 4 layers.
+2025-06-14 00:05:33,315 - src.packaging.quantization_aware_distillation - INFO - QAD Small student parameters: 45,839,953
+2025-06-14 00:05:33,316 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: tiny with {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:05:33,429 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 2 layers.
+2025-06-14 00:05:33,548 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny student parameters: 27,425,873
+2025-06-14 00:05:33,550 - src.packaging.quantization_aware_distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:05:33,551 - src.packaging.quantization_aware_distillation - INFO - QAD Small compression ratio: 1.68x
+2025-06-14 00:05:33,551 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny compression ratio: 2.80x
+2025-06-14 00:05:33,552 - src.packaging.model_variants - INFO - Creating QAD variant: small
+2025-06-14 00:05:33,552 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for small student model...
+2025-06-14 00:05:33,912 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:05:33,916 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:05:33,918 - src.packaging.model_variants - ERROR - Failed to create QAD variant for small: 'function' object is not iterable
+2025-06-14 00:05:33,920 - src.packaging.model_variants - INFO - Creating QAD variant: tiny
+2025-06-14 00:05:33,923 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for tiny student model...
+2025-06-14 00:05:34,123 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:05:34,124 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:05:34,125 - src.packaging.model_variants - ERROR - Failed to create QAD variant for tiny: 'function' object is not iterable
+2025-06-14 00:05:34,126 - src.packaging.model_variants - INFO - Created 0 quantization-aware distilled variants
+2025-06-14 00:05:34,126 - src.packaging.model_variants - INFO - ✓ Created 0 combined variants
+2025-06-14 00:05:34,126 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-14 00:05:34,127 - src.packaging.model_variants - INFO - Benchmarking 1 model variants...
+2025-06-14 00:05:34,127 - src.packaging.benchmarking - INFO - Benchmarking 1 model variants
+2025-06-14 00:05:34,128 - src.packaging.benchmarking - INFO - Benchmarking quantized_dynamic...
+2025-06-14 00:05:34,129 - src.packaging.benchmarking - ERROR - Failed to benchmark quantized_dynamic: 'checkpoint_path'
+2025-06-14 00:05:34,130 - src.packaging.benchmarking - INFO - Benchmarking completed | Results saved to packaged_models/benchmark_results
+2025-06-14 00:05:34,131 - src.packaging.model_variants - INFO - Benchmarking completed successfully
+2025-06-14 00:05:34,131 - src.packaging.model_variants - INFO - ✓ Benchmarking completed for 0 variants
+2025-06-14 00:05:34,132 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-14 00:05:34,134 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-14 00:05:34,137 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-14 00:05:34,138 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-14 00:05:34,139 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-14 00:05:34,140 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 1 | Baseline params: 76,852,305 | Best compression: 2.9x | Location: packaged_models
+2025-06-14 00:05:34,144 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-14 00:05:34,145 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 1 | Baseline params: 76,852,305
+2025-06-14 00:05:34,145 - __main__ - INFO - Results saved to: packaged_models
+2025-06-14 00:05:34,520 - __main__ - INFO - PIPELINE COMPLETED | Variants: 1 | Location: packaged_models
+2025-06-14 00:16:08,820 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 00:16:08,821 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 00:16:08,821 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 00:16:08,848 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 00:16:08,848 - __main__ - INFO - Enabled optimization methods: distillation, quantization, combined
+2025-06-14 00:16:08,849 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 00:16:08,849 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation, quantization, combined | Output: packaged_models
+2025-06-14 00:16:08,849 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 00:16:08,850 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 00:16:08,850 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 00:16:08,851 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 00:16:08,851 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 00:16:08,851 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 00:16:08,851 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 00:16:08,852 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 00:16:08,852 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 00:16:08,852 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 00:16:08,852 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 00:16:08,852 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 00:16:08,853 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 00:16:08,853 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 00:16:08,853 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 00:16:08,853 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 00:16:08,862 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 00:16:21,462 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 00:16:21,703 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 00:16:21,704 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 00:16:23,170 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 00:16:44,114 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 00:16:44,381 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 00:16:44,382 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 00:16:44,382 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 00:16:44,383 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 00:16:44,395 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 00:16:44,395 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 00:16:44,395 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 00:16:44,395 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 00:16:44,395 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 00:16:44,396 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 00:16:55,662 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 00:16:57,807 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 00:16:58,828 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 00:16:58,987 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 00:16:58,987 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 00:16:58,988 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-14 00:16:58,988 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-14 00:16:58,990 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-14 00:16:58,991 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-14 00:16:58,992 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:16:59,140 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-14 00:16:59,337 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-14 00:16:59,338 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:16:59,465 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-14 00:16:59,601 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-14 00:16:59,602 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:16:59,603 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-14 00:16:59,604 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-14 00:16:59,604 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-14 00:16:59,605 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:16:59,605 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-14 00:16:59,605 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:16:59,606 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-14 00:17:01,463 - src.packaging.distillation - ERROR - Failed to distill small student: 'function' object is not iterable
+2025-06-14 00:17:01,464 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:17:01,464 - src.packaging.distillation - INFO - DISTILLING TINY STUDENT MODEL
+2025-06-14 00:17:01,465 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:17:01,465 - src.packaging.distillation - INFO - Starting distillation for tiny student model...
+2025-06-14 00:17:01,466 - src.packaging.distillation - ERROR - Failed to distill tiny student: 'function' object is not iterable
+2025-06-14 00:17:01,472 - src.packaging.distillation - INFO - 
+Distillation completed for all students!
+2025-06-14 00:17:01,473 - src.packaging.model_variants - WARNING - Skipping failed distillation: small
+2025-06-14 00:17:01,473 - src.packaging.model_variants - WARNING - Skipping failed distillation: tiny
+2025-06-14 00:17:01,474 - src.packaging.model_variants - INFO - Created 0 distilled variants
+2025-06-14 00:17:01,474 - src.packaging.model_variants - INFO - ✓ Created 0 distilled variants
+2025-06-14 00:17:01,475 - src.packaging.model_variants - INFO - Creating quantized variants...
+2025-06-14 00:17:01,476 - src.packaging.model_variants - INFO - Creating quantized model variants...
+2025-06-14 00:17:01,699 - src.packaging.quantization - INFO - Creating quantized variants | Dynamic, PTQ, QAT...
+2025-06-14 00:17:01,702 - src.packaging.quantization - INFO - Running dynamic quantization...
+2025-06-14 00:17:02,262 - src.packaging.quantization - INFO - Starting dynamic quantization...
+2025-06-14 00:17:07,927 - src.packaging.quantization - INFO - Dynamic quantization | 295.21MB → 149.63MB | 1.97x compression | 49.3% reduction
+2025-06-14 00:17:09,857 - src.packaging.quantization - INFO - Saved quantized model to packaged_models/quantized/dynamic_quantized.pt
+2025-06-14 00:17:09,858 - src.packaging.quantization - INFO - Dynamic quantization completed successfully
+2025-06-14 00:17:12,351 - src.packaging.quantization - INFO - ✓ Dynamic quantization | Compression: 1.97x
+2025-06-14 00:17:12,352 - src.packaging.quantization - INFO - Running post-training quantization...
+2025-06-14 00:17:12,532 - src.packaging.quantization - INFO - Starting post-training quantization...
+2025-06-14 00:17:12,535 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:17:12,618 - src.packaging.quantization - INFO - Calibrating with 100 samples...
+2025-06-14 00:17:12,797 - src.packaging.quantization - ERROR - Post-training quantization failed: torch.histogram: input tensor and hist tensor should have the same dtype, but got input long long and hist float
+2025-06-14 00:17:12,797 - src.packaging.quantization - INFO - Running quantization-aware training...
+2025-06-14 00:17:12,988 - src.packaging.quantization - INFO - Starting quantization-aware training...
+2025-06-14 00:17:12,993 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:17:13,812 - src.packaging.quantization - ERROR - Quantization-aware training failed: '<=' not supported between instances of 'float' and 'NoneType'
+2025-06-14 00:17:13,813 - src.packaging.quantization - INFO - Quantization completed | Methods: 1/3 successful
+2025-06-14 00:17:13,871 - src.packaging.model_variants - WARNING - Skipping failed quantization: ptq
+2025-06-14 00:17:13,874 - src.packaging.model_variants - WARNING - Skipping failed quantization: qat
+2025-06-14 00:17:13,875 - src.packaging.model_variants - INFO - Created 1 quantized variants
+2025-06-14 00:17:13,875 - src.packaging.model_variants - INFO - ✓ Created 1 quantized variants
+2025-06-14 00:17:13,876 - src.packaging.model_variants - INFO - Creating combined variants...
+2025-06-14 00:17:13,876 - src.packaging.model_variants - INFO - Creating combined variants using quantization-aware distillation...
+2025-06-14 00:17:13,879 - src.packaging.quantization_aware_distillation - INFO - Teacher model set for QAD | Parameters: 76,852,305
+2025-06-14 00:17:13,880 - src.packaging.quantization_aware_distillation - INFO - Creating student models for quantization-aware distillation...
+2025-06-14 00:17:13,880 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: small with {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:17:14,046 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 4 layers.
+2025-06-14 00:17:14,276 - src.packaging.quantization_aware_distillation - INFO - QAD Small student parameters: 45,839,953
+2025-06-14 00:17:14,276 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: tiny with {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:17:14,395 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 2 layers.
+2025-06-14 00:17:14,530 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny student parameters: 27,425,873
+2025-06-14 00:17:14,532 - src.packaging.quantization_aware_distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:17:14,533 - src.packaging.quantization_aware_distillation - INFO - QAD Small compression ratio: 1.68x
+2025-06-14 00:17:14,534 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny compression ratio: 2.80x
+2025-06-14 00:17:14,534 - src.packaging.model_variants - INFO - Creating QAD variant: small
+2025-06-14 00:17:14,535 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for small student model...
+2025-06-14 00:17:14,921 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:17:14,926 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:17:27,565 - src.packaging.model_variants - ERROR - Failed to create QAD variant for small: 'tuple' object has no attribute 'shape'
+2025-06-14 00:17:27,975 - src.packaging.model_variants - INFO - Creating QAD variant: tiny
+2025-06-14 00:17:27,975 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for tiny student model...
+2025-06-14 00:17:28,226 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:17:28,234 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:17:36,446 - src.packaging.model_variants - ERROR - Failed to create QAD variant for tiny: 'tuple' object has no attribute 'shape'
+2025-06-14 00:17:36,642 - src.packaging.model_variants - INFO - Created 0 quantization-aware distilled variants
+2025-06-14 00:17:36,644 - src.packaging.model_variants - INFO - ✓ Created 0 combined variants
+2025-06-14 00:17:36,644 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-14 00:17:36,645 - src.packaging.model_variants - INFO - Benchmarking 1 model variants...
+2025-06-14 00:17:36,647 - src.packaging.benchmarking - INFO - Benchmarking 1 model variants
+2025-06-14 00:17:36,647 - src.packaging.benchmarking - INFO - Benchmarking quantized_dynamic...
+2025-06-14 00:17:36,648 - src.packaging.benchmarking - ERROR - Failed to benchmark quantized_dynamic: 'checkpoint_path'
+2025-06-14 00:17:36,649 - src.packaging.benchmarking - INFO - Benchmarking completed | Results saved to packaged_models/benchmark_results
+2025-06-14 00:17:36,655 - src.packaging.model_variants - INFO - Benchmarking completed successfully
+2025-06-14 00:17:36,657 - src.packaging.model_variants - INFO - ✓ Benchmarking completed for 0 variants
+2025-06-14 00:17:36,657 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-14 00:17:36,659 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-14 00:17:36,662 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-14 00:17:36,664 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-14 00:17:36,665 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-14 00:17:36,665 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 1 | Baseline params: 76,852,305 | Best compression: 2.9x | Location: packaged_models
+2025-06-14 00:17:36,666 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-14 00:17:36,667 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 1 | Baseline params: 76,852,305
+2025-06-14 00:17:36,671 - __main__ - INFO - Results saved to: packaged_models
+2025-06-14 00:17:37,150 - __main__ - INFO - PIPELINE COMPLETED | Variants: 1 | Location: packaged_models
+2025-06-14 00:31:02,932 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 00:31:02,934 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 00:31:02,934 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 00:31:02,972 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 00:31:02,972 - __main__ - INFO - Enabled optimization methods: distillation, quantization, combined
+2025-06-14 00:31:02,972 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 00:31:02,972 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation, quantization, combined | Output: packaged_models
+2025-06-14 00:31:02,977 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 00:31:02,977 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 00:31:02,977 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 00:31:02,979 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 00:31:02,979 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 00:31:02,979 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 00:31:02,979 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 00:31:02,980 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 00:31:02,980 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 00:31:02,980 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 00:31:02,980 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 00:31:02,980 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 00:31:02,980 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 00:31:02,981 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 00:31:02,981 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 00:31:02,981 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 00:31:02,997 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 00:31:13,668 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 00:31:14,095 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 00:31:14,096 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 00:31:15,624 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 00:31:45,530 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 00:31:45,751 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 00:31:45,751 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 00:31:45,751 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 00:31:45,751 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 00:31:45,759 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 00:31:45,759 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 00:31:45,759 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 00:31:45,759 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 00:31:45,759 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 00:31:45,759 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 00:31:56,642 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 00:31:58,198 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 00:31:59,030 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 00:31:59,202 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 00:31:59,202 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 00:31:59,203 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-14 00:31:59,203 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-14 00:31:59,206 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-14 00:31:59,207 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-14 00:31:59,208 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:31:59,370 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-14 00:31:59,580 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-14 00:31:59,581 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:31:59,699 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-14 00:31:59,860 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-14 00:31:59,861 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:31:59,862 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-14 00:31:59,863 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-14 00:31:59,864 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-14 00:31:59,865 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:31:59,868 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-14 00:31:59,868 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:31:59,869 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-14 00:32:01,498 - src.packaging.distillation - ERROR - Failed to distill small student: 'function' object is not iterable
+2025-06-14 00:32:01,498 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:32:01,499 - src.packaging.distillation - INFO - DISTILLING TINY STUDENT MODEL
+2025-06-14 00:32:01,499 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:32:01,500 - src.packaging.distillation - INFO - Starting distillation for tiny student model...
+2025-06-14 00:32:01,502 - src.packaging.distillation - ERROR - Failed to distill tiny student: 'function' object is not iterable
+2025-06-14 00:32:01,502 - src.packaging.distillation - INFO - 
+Distillation completed for all students!
+2025-06-14 00:32:01,502 - src.packaging.model_variants - WARNING - Skipping failed distillation: small
+2025-06-14 00:32:01,503 - src.packaging.model_variants - WARNING - Skipping failed distillation: tiny
+2025-06-14 00:32:01,503 - src.packaging.model_variants - INFO - Created 0 distilled variants
+2025-06-14 00:32:01,504 - src.packaging.model_variants - INFO - ✓ Created 0 distilled variants
+2025-06-14 00:32:01,504 - src.packaging.model_variants - INFO - Creating quantized variants...
+2025-06-14 00:32:01,505 - src.packaging.model_variants - INFO - Creating quantized model variants...
+2025-06-14 00:32:01,675 - src.packaging.quantization - INFO - Creating quantized variants | Dynamic, PTQ, QAT...
+2025-06-14 00:32:01,676 - src.packaging.quantization - INFO - Running dynamic quantization...
+2025-06-14 00:32:01,953 - src.packaging.quantization - INFO - Starting dynamic quantization...
+2025-06-14 00:32:06,746 - src.packaging.quantization - INFO - Dynamic quantization | 295.21MB → 149.63MB | 1.97x compression | 49.3% reduction
+2025-06-14 00:32:08,755 - src.packaging.quantization - INFO - Saved quantized model to packaged_models/quantized/dynamic_quantized.pt
+2025-06-14 00:32:08,756 - src.packaging.quantization - INFO - Dynamic quantization completed successfully
+2025-06-14 00:32:10,674 - src.packaging.quantization - INFO - ✓ Dynamic quantization | Compression: 1.97x
+2025-06-14 00:32:10,675 - src.packaging.quantization - INFO - Running post-training quantization...
+2025-06-14 00:32:10,836 - src.packaging.quantization - INFO - Starting post-training quantization...
+2025-06-14 00:32:10,839 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:32:10,923 - src.packaging.quantization - INFO - Calibrating with 100 samples...
+2025-06-14 00:32:10,981 - src.packaging.quantization - ERROR - Post-training quantization failed: torch.histogram: input tensor and hist tensor should have the same dtype, but got input long long and hist float
+2025-06-14 00:32:10,981 - src.packaging.quantization - INFO - Running quantization-aware training...
+2025-06-14 00:32:11,145 - src.packaging.quantization - INFO - Starting quantization-aware training...
+2025-06-14 00:32:11,147 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:32:11,792 - src.packaging.quantization - ERROR - Quantization-aware training failed: '<=' not supported between instances of 'float' and 'NoneType'
+2025-06-14 00:32:11,794 - src.packaging.quantization - INFO - Quantization completed | Methods: 1/3 successful
+2025-06-14 00:32:11,843 - src.packaging.model_variants - WARNING - Skipping failed quantization: ptq
+2025-06-14 00:32:11,843 - src.packaging.model_variants - WARNING - Skipping failed quantization: qat
+2025-06-14 00:32:11,844 - src.packaging.model_variants - INFO - Created 1 quantized variants
+2025-06-14 00:32:11,845 - src.packaging.model_variants - INFO - ✓ Created 1 quantized variants
+2025-06-14 00:32:11,845 - src.packaging.model_variants - INFO - Creating combined variants...
+2025-06-14 00:32:11,845 - src.packaging.model_variants - INFO - Creating combined variants using quantization-aware distillation...
+2025-06-14 00:32:11,847 - src.packaging.quantization_aware_distillation - INFO - Teacher model set for QAD | Parameters: 76,852,305
+2025-06-14 00:32:11,849 - src.packaging.quantization_aware_distillation - INFO - Creating student models for quantization-aware distillation...
+2025-06-14 00:32:11,850 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: small with {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:32:12,004 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 4 layers.
+2025-06-14 00:32:12,216 - src.packaging.quantization_aware_distillation - INFO - QAD Small student parameters: 45,839,953
+2025-06-14 00:32:12,217 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: tiny with {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:32:12,327 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 2 layers.
+2025-06-14 00:32:12,450 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny student parameters: 27,425,873
+2025-06-14 00:32:12,451 - src.packaging.quantization_aware_distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:32:12,452 - src.packaging.quantization_aware_distillation - INFO - QAD Small compression ratio: 1.68x
+2025-06-14 00:32:12,453 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny compression ratio: 2.80x
+2025-06-14 00:32:12,453 - src.packaging.model_variants - INFO - Creating QAD variant: small
+2025-06-14 00:32:12,453 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for small student model...
+2025-06-14 00:32:12,800 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:32:12,803 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:32:24,259 - src.packaging.model_variants - ERROR - Failed to create QAD variant for small: 'tuple' object has no attribute 'shape'
+2025-06-14 00:32:24,589 - src.packaging.model_variants - INFO - Creating QAD variant: tiny
+2025-06-14 00:32:24,590 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for tiny student model...
+2025-06-14 00:32:24,787 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:32:24,791 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:32:31,105 - src.packaging.model_variants - ERROR - Failed to create QAD variant for tiny: 'tuple' object has no attribute 'shape'
+2025-06-14 00:32:31,217 - src.packaging.model_variants - INFO - Created 0 quantization-aware distilled variants
+2025-06-14 00:32:31,217 - src.packaging.model_variants - INFO - ✓ Created 0 combined variants
+2025-06-14 00:32:31,218 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-14 00:32:31,218 - src.packaging.model_variants - INFO - Benchmarking 1 model variants...
+2025-06-14 00:32:31,220 - src.packaging.benchmarking - INFO - Benchmarking 1 model variants
+2025-06-14 00:32:31,221 - src.packaging.benchmarking - INFO - Benchmarking quantized_dynamic...
+2025-06-14 00:32:31,221 - src.packaging.benchmarking - ERROR - Failed to benchmark quantized_dynamic: 'checkpoint_path'
+2025-06-14 00:32:31,221 - src.packaging.benchmarking - INFO - Benchmarking completed | Results saved to packaged_models/benchmark_results
+2025-06-14 00:32:31,222 - src.packaging.model_variants - INFO - Benchmarking completed successfully
+2025-06-14 00:32:31,223 - src.packaging.model_variants - INFO - ✓ Benchmarking completed for 0 variants
+2025-06-14 00:32:31,224 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-14 00:32:31,224 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-14 00:32:31,227 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-14 00:32:31,230 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-14 00:32:31,230 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-14 00:32:31,231 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 1 | Baseline params: 76,852,305 | Best compression: 2.9x | Location: packaged_models
+2025-06-14 00:32:31,232 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-14 00:32:31,233 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 1 | Baseline params: 76,852,305
+2025-06-14 00:32:31,233 - __main__ - INFO - Results saved to: packaged_models
+2025-06-14 00:32:31,684 - __main__ - INFO - PIPELINE COMPLETED | Variants: 1 | Location: packaged_models
+2025-06-14 00:36:34,664 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 00:36:34,665 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 00:36:34,665 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 00:36:34,689 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 00:36:34,690 - __main__ - INFO - Enabled optimization methods: distillation, quantization, combined
+2025-06-14 00:36:34,690 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 00:36:34,691 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation, quantization, combined | Output: packaged_models
+2025-06-14 00:36:34,691 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 00:36:34,691 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 00:36:34,691 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 00:36:34,692 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 00:36:34,692 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 00:36:34,692 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 00:36:34,693 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 00:36:34,693 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 00:36:34,694 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 00:36:34,694 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 00:36:34,694 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 00:36:34,695 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 00:36:34,695 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 00:36:34,695 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 00:36:34,695 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 00:36:34,695 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 00:36:34,708 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 00:36:45,998 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 00:36:46,283 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 00:36:46,283 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 00:36:47,582 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 00:37:14,311 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 00:37:14,593 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 00:37:14,594 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 00:37:14,594 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 00:37:14,594 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 00:37:14,604 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 00:37:14,605 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 00:37:14,606 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 00:37:14,607 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 00:37:14,607 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 00:37:14,607 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 00:37:26,785 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 00:37:31,272 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 00:37:33,511 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 00:37:33,955 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 00:37:33,955 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 00:37:33,956 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-14 00:37:33,958 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-14 00:37:33,974 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-14 00:37:33,974 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-14 00:37:33,975 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:37:34,392 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-14 00:37:35,195 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-14 00:37:35,197 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:37:35,387 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-14 00:37:35,647 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-14 00:37:35,649 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:37:35,650 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-14 00:37:35,651 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-14 00:37:35,652 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-14 00:37:35,652 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:37:35,654 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-14 00:37:35,654 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:37:35,655 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-14 00:37:51,895 - src.packaging.distillation - ERROR - Failed to distill small student: 'tuple' object has no attribute 'shape'
+2025-06-14 00:37:52,334 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:37:52,335 - src.packaging.distillation - INFO - DISTILLING TINY STUDENT MODEL
+2025-06-14 00:37:52,336 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:37:52,336 - src.packaging.distillation - INFO - Starting distillation for tiny student model...
+2025-06-14 00:38:03,562 - src.packaging.distillation - ERROR - Failed to distill tiny student: 'tuple' object has no attribute 'shape'
+2025-06-14 00:38:03,694 - src.packaging.distillation - INFO - 
+Distillation completed for all students!
+2025-06-14 00:38:03,694 - src.packaging.model_variants - WARNING - Skipping failed distillation: small
+2025-06-14 00:38:03,695 - src.packaging.model_variants - WARNING - Skipping failed distillation: tiny
+2025-06-14 00:38:03,695 - src.packaging.model_variants - INFO - Created 0 distilled variants
+2025-06-14 00:38:03,696 - src.packaging.model_variants - INFO - ✓ Created 0 distilled variants
+2025-06-14 00:38:03,696 - src.packaging.model_variants - INFO - Creating quantized variants...
+2025-06-14 00:38:03,697 - src.packaging.model_variants - INFO - Creating quantized model variants...
+2025-06-14 00:38:04,211 - src.packaging.quantization - INFO - Creating quantized variants | Dynamic, PTQ, QAT...
+2025-06-14 00:38:04,213 - src.packaging.quantization - INFO - Running dynamic quantization...
+2025-06-14 00:38:04,868 - src.packaging.quantization - INFO - Starting dynamic quantization...
+2025-06-14 00:38:13,279 - src.packaging.quantization - INFO - Dynamic quantization | 295.21MB → 149.63MB | 1.97x compression | 49.3% reduction
+2025-06-14 00:38:16,277 - src.packaging.quantization - INFO - Saved quantized model to packaged_models/quantized/dynamic_quantized.pt
+2025-06-14 00:38:16,277 - src.packaging.quantization - INFO - Dynamic quantization completed successfully
+2025-06-14 00:38:18,515 - src.packaging.quantization - INFO - ✓ Dynamic quantization | Compression: 1.97x
+2025-06-14 00:38:18,515 - src.packaging.quantization - INFO - Running post-training quantization...
+2025-06-14 00:38:18,734 - src.packaging.quantization - INFO - Starting post-training quantization...
+2025-06-14 00:38:18,736 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:38:18,795 - src.packaging.quantization - INFO - Calibrating with 100 samples...
+2025-06-14 00:38:18,851 - src.packaging.quantization - ERROR - Post-training quantization failed: Expected tensor for argument #1 'indices' to have one of the following scalar types: Long, Int; but got torch.FloatTensor instead (while checking arguments for embedding)
+2025-06-14 00:38:18,851 - src.packaging.quantization - INFO - Running quantization-aware training...
+2025-06-14 00:38:19,098 - src.packaging.quantization - INFO - Starting quantization-aware training...
+2025-06-14 00:38:19,101 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:38:19,900 - src.packaging.quantization - INFO - QAT Epoch 1/3
+2025-06-14 00:38:21,807 - src.packaging.quantization - ERROR - Quantization-aware training failed: expected scalar type Float but found Long
+2025-06-14 00:38:21,807 - src.packaging.quantization - INFO - Quantization completed | Methods: 1/3 successful
+2025-06-14 00:38:21,853 - src.packaging.model_variants - WARNING - Skipping failed quantization: ptq
+2025-06-14 00:38:21,853 - src.packaging.model_variants - WARNING - Skipping failed quantization: qat
+2025-06-14 00:38:21,853 - src.packaging.model_variants - INFO - Created 1 quantized variants
+2025-06-14 00:38:21,853 - src.packaging.model_variants - INFO - ✓ Created 1 quantized variants
+2025-06-14 00:38:21,853 - src.packaging.model_variants - INFO - Creating combined variants...
+2025-06-14 00:38:21,853 - src.packaging.model_variants - INFO - Creating combined variants using quantization-aware distillation...
+2025-06-14 00:38:21,855 - src.packaging.quantization_aware_distillation - INFO - Teacher model set for QAD | Parameters: 76,852,305
+2025-06-14 00:38:21,855 - src.packaging.quantization_aware_distillation - INFO - Creating student models for quantization-aware distillation...
+2025-06-14 00:38:21,856 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: small with {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:38:21,974 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 4 layers.
+2025-06-14 00:38:22,152 - src.packaging.quantization_aware_distillation - INFO - QAD Small student parameters: 45,839,953
+2025-06-14 00:38:22,153 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: tiny with {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:38:22,248 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 2 layers.
+2025-06-14 00:38:22,375 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny student parameters: 27,425,873
+2025-06-14 00:38:22,375 - src.packaging.quantization_aware_distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:38:22,376 - src.packaging.quantization_aware_distillation - INFO - QAD Small compression ratio: 1.68x
+2025-06-14 00:38:22,376 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny compression ratio: 2.80x
+2025-06-14 00:38:22,377 - src.packaging.model_variants - INFO - Creating QAD variant: small
+2025-06-14 00:38:22,377 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for small student model...
+2025-06-14 00:38:22,748 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:38:22,749 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:38:42,733 - src.packaging.model_variants - ERROR - Failed to create QAD variant for small: 'tuple' object has no attribute 'shape'
+2025-06-14 00:38:43,200 - src.packaging.model_variants - INFO - Creating QAD variant: tiny
+2025-06-14 00:38:43,200 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for tiny student model...
+2025-06-14 00:38:43,526 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:38:43,532 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:38:58,187 - src.packaging.model_variants - ERROR - Failed to create QAD variant for tiny: 'tuple' object has no attribute 'shape'
+2025-06-14 00:38:58,376 - src.packaging.model_variants - INFO - Created 0 quantization-aware distilled variants
+2025-06-14 00:38:58,377 - src.packaging.model_variants - INFO - ✓ Created 0 combined variants
+2025-06-14 00:38:58,378 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-14 00:38:58,378 - src.packaging.model_variants - INFO - Benchmarking 1 model variants...
+2025-06-14 00:38:58,379 - src.packaging.benchmarking - INFO - Benchmarking 1 model variants
+2025-06-14 00:38:58,379 - src.packaging.benchmarking - INFO - Benchmarking quantized_dynamic...
+2025-06-14 00:38:58,382 - src.packaging.benchmarking - ERROR - Failed to benchmark quantized_dynamic: 'checkpoint_path'
+2025-06-14 00:38:58,383 - src.packaging.benchmarking - INFO - Benchmarking completed | Results saved to packaged_models/benchmark_results
+2025-06-14 00:38:58,393 - src.packaging.model_variants - INFO - Benchmarking completed successfully
+2025-06-14 00:38:58,396 - src.packaging.model_variants - INFO - ✓ Benchmarking completed for 0 variants
+2025-06-14 00:38:58,396 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-14 00:38:58,397 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-14 00:38:58,413 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-14 00:38:58,414 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-14 00:38:58,416 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-14 00:38:58,416 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 1 | Baseline params: 76,852,305 | Best compression: 2.9x | Location: packaged_models
+2025-06-14 00:38:58,418 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-14 00:38:58,422 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 1 | Baseline params: 76,852,305
+2025-06-14 00:38:58,424 - __main__ - INFO - Results saved to: packaged_models
+2025-06-14 00:38:59,491 - __main__ - INFO - PIPELINE COMPLETED | Variants: 1 | Location: packaged_models
+2025-06-14 00:46:03,206 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 00:46:03,208 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 00:46:03,208 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 00:46:03,232 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 00:46:03,232 - __main__ - INFO - Enabled optimization methods: distillation, quantization, combined
+2025-06-14 00:46:03,233 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 00:46:03,233 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation, quantization, combined | Output: packaged_models
+2025-06-14 00:46:03,233 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 00:46:03,233 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 00:46:03,233 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 00:46:03,233 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 00:46:03,233 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 00:46:03,234 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 00:46:03,234 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 00:46:03,234 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 00:46:03,234 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 00:46:03,234 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 00:46:03,235 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 00:46:03,235 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 00:46:03,235 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 00:46:03,235 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 00:46:03,236 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 00:46:03,236 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 00:46:03,247 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 00:46:16,324 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 00:46:16,690 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 00:46:16,692 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 00:46:17,986 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 00:46:53,042 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 00:46:53,910 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 00:46:53,911 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 00:46:53,912 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 00:46:53,912 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 00:46:53,921 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 00:46:53,921 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 00:46:53,922 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 00:46:53,922 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 00:46:53,922 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 00:46:53,922 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 00:47:09,159 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 00:47:12,371 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 00:47:14,632 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 00:47:14,857 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 00:47:14,860 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 00:47:14,865 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-14 00:47:14,867 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-14 00:47:14,872 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-14 00:47:14,875 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-14 00:47:14,900 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:47:15,162 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-14 00:47:15,539 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-14 00:47:15,540 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:47:15,733 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-14 00:47:16,011 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-14 00:47:16,014 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:47:16,018 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-14 00:47:16,020 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-14 00:47:16,020 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-14 00:47:16,021 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:47:16,023 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-14 00:47:16,025 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:47:16,025 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-14 00:47:40,127 - src.packaging.distillation - ERROR - Failed to distill small student: not enough values to unpack (expected 3, got 2)
+2025-06-14 00:47:40,911 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 00:47:40,913 - src.packaging.distillation - INFO - DISTILLING TINY STUDENT MODEL
+2025-06-14 00:47:40,921 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 00:47:40,925 - src.packaging.distillation - INFO - Starting distillation for tiny student model...
+2025-06-14 00:47:54,478 - src.packaging.distillation - ERROR - Failed to distill tiny student: not enough values to unpack (expected 3, got 2)
+2025-06-14 00:47:54,745 - src.packaging.distillation - INFO - 
+Distillation completed for all students!
+2025-06-14 00:47:54,747 - src.packaging.model_variants - WARNING - Skipping failed distillation: small
+2025-06-14 00:47:54,748 - src.packaging.model_variants - WARNING - Skipping failed distillation: tiny
+2025-06-14 00:47:54,750 - src.packaging.model_variants - INFO - Created 0 distilled variants
+2025-06-14 00:47:54,754 - src.packaging.model_variants - INFO - ✓ Created 0 distilled variants
+2025-06-14 00:47:54,755 - src.packaging.model_variants - INFO - Creating quantized variants...
+2025-06-14 00:47:54,756 - src.packaging.model_variants - INFO - Creating quantized model variants...
+2025-06-14 00:47:55,406 - src.packaging.quantization - INFO - Creating quantized variants | Dynamic, PTQ, QAT...
+2025-06-14 00:47:55,406 - src.packaging.quantization - INFO - Running dynamic quantization...
+2025-06-14 00:47:56,125 - src.packaging.quantization - INFO - Starting dynamic quantization...
+2025-06-14 00:48:02,495 - src.packaging.quantization - INFO - Dynamic quantization | 295.21MB → 149.63MB | 1.97x compression | 49.3% reduction
+2025-06-14 00:48:06,273 - src.packaging.quantization - INFO - Saved quantized model to packaged_models/quantized/dynamic_quantized.pt
+2025-06-14 00:48:06,274 - src.packaging.quantization - INFO - Dynamic quantization completed successfully
+2025-06-14 00:48:10,337 - src.packaging.quantization - INFO - ✓ Dynamic quantization | Compression: 1.97x
+2025-06-14 00:48:10,341 - src.packaging.quantization - INFO - Running post-training quantization...
+2025-06-14 00:48:11,191 - src.packaging.quantization - INFO - Starting post-training quantization...
+2025-06-14 00:48:11,195 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:48:11,353 - src.packaging.quantization - INFO - Calibrating with 100 samples...
+2025-06-14 00:48:11,609 - src.packaging.quantization - ERROR - Post-training quantization failed: torch.histogram: input tensor and hist tensor should have the same dtype, but got input long long and hist float
+2025-06-14 00:48:11,610 - src.packaging.quantization - INFO - Running quantization-aware training...
+2025-06-14 00:48:12,997 - src.packaging.quantization - INFO - Starting quantization-aware training...
+2025-06-14 00:48:13,009 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:48:14,738 - src.packaging.quantization - INFO - QAT Epoch 1/3
+2025-06-14 00:48:16,555 - src.packaging.quantization - ERROR - Quantization-aware training failed: expected scalar type Float but found Long
+2025-06-14 00:48:16,556 - src.packaging.quantization - INFO - Quantization completed | Methods: 1/3 successful
+2025-06-14 00:48:16,697 - src.packaging.model_variants - WARNING - Skipping failed quantization: ptq
+2025-06-14 00:48:16,702 - src.packaging.model_variants - WARNING - Skipping failed quantization: qat
+2025-06-14 00:48:16,703 - src.packaging.model_variants - INFO - Created 1 quantized variants
+2025-06-14 00:48:16,703 - src.packaging.model_variants - INFO - ✓ Created 1 quantized variants
+2025-06-14 00:48:16,703 - src.packaging.model_variants - INFO - Creating combined variants...
+2025-06-14 00:48:16,703 - src.packaging.model_variants - INFO - Creating combined variants using quantization-aware distillation...
+2025-06-14 00:48:16,713 - src.packaging.quantization_aware_distillation - INFO - Teacher model set for QAD | Parameters: 76,852,305
+2025-06-14 00:48:16,713 - src.packaging.quantization_aware_distillation - INFO - Creating student models for quantization-aware distillation...
+2025-06-14 00:48:16,713 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: small with {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:48:16,910 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 4 layers.
+2025-06-14 00:48:17,341 - src.packaging.quantization_aware_distillation - INFO - QAD Small student parameters: 45,839,953
+2025-06-14 00:48:17,341 - src.packaging.quantization_aware_distillation - INFO - Creating QAD student model: tiny with {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 00:48:17,539 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 2 layers.
+2025-06-14 00:48:17,773 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny student parameters: 27,425,873
+2025-06-14 00:48:17,774 - src.packaging.quantization_aware_distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 00:48:17,776 - src.packaging.quantization_aware_distillation - INFO - QAD Small compression ratio: 1.68x
+2025-06-14 00:48:17,777 - src.packaging.quantization_aware_distillation - INFO - QAD Tiny compression ratio: 2.80x
+2025-06-14 00:48:17,777 - src.packaging.model_variants - INFO - Creating QAD variant: small
+2025-06-14 00:48:17,777 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for small student model...
+2025-06-14 00:48:18,732 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:48:18,736 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:48:50,877 - src.packaging.model_variants - ERROR - Failed to create QAD variant for small: not enough values to unpack (expected 3, got 2)
+2025-06-14 00:48:51,815 - src.packaging.model_variants - INFO - Creating QAD variant: tiny
+2025-06-14 00:48:51,820 - src.packaging.quantization_aware_distillation - INFO - Starting quantization-aware distillation for tiny student model...
+2025-06-14 00:48:52,361 - src.packaging.quantization_aware_distillation - INFO - Model prepared for QAT with backend: fbgemm
+2025-06-14 00:48:52,365 - src.packaging.quantization_aware_distillation - INFO - Created QAD optimizer: lr=5e-05
+2025-06-14 00:49:13,155 - src.packaging.model_variants - ERROR - Failed to create QAD variant for tiny: not enough values to unpack (expected 3, got 2)
+2025-06-14 00:49:13,310 - src.packaging.model_variants - INFO - Created 0 quantization-aware distilled variants
+2025-06-14 00:49:13,310 - src.packaging.model_variants - INFO - ✓ Created 0 combined variants
+2025-06-14 00:49:13,311 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-14 00:49:13,311 - src.packaging.model_variants - INFO - Benchmarking 1 model variants...
+2025-06-14 00:49:13,312 - src.packaging.benchmarking - INFO - Benchmarking 1 model variants
+2025-06-14 00:49:13,312 - src.packaging.benchmarking - INFO - Benchmarking quantized_dynamic...
+2025-06-14 00:49:13,313 - src.packaging.benchmarking - ERROR - Failed to benchmark quantized_dynamic: 'checkpoint_path'
+2025-06-14 00:49:13,313 - src.packaging.benchmarking - INFO - Benchmarking completed | Results saved to packaged_models/benchmark_results
+2025-06-14 00:49:13,314 - src.packaging.model_variants - INFO - Benchmarking completed successfully
+2025-06-14 00:49:13,317 - src.packaging.model_variants - INFO - ✓ Benchmarking completed for 0 variants
+2025-06-14 00:49:13,317 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-14 00:49:13,318 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-14 00:49:13,323 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-14 00:49:13,325 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-14 00:49:13,326 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-14 00:49:13,326 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 1 | Baseline params: 76,852,305 | Best compression: 2.9x | Location: packaged_models
+2025-06-14 00:49:13,327 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-14 00:49:13,327 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 1 | Baseline params: 76,852,305
+2025-06-14 00:49:13,328 - __main__ - INFO - Results saved to: packaged_models
+2025-06-14 00:49:14,751 - __main__ - INFO - PIPELINE COMPLETED | Variants: 1 | Location: packaged_models
+2025-06-14 00:58:31,618 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 00:58:31,621 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 00:58:31,621 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 00:58:31,653 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 00:58:31,654 - __main__ - INFO - Enabled optimization methods: quantization
+2025-06-14 00:58:31,654 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 00:58:31,655 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: quantization | Output: packaged_models
+2025-06-14 00:58:31,655 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 00:58:31,655 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 00:58:31,656 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 00:58:31,656 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 00:58:31,657 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 00:58:31,657 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 00:58:31,658 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 00:58:31,658 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 00:58:31,661 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 00:58:31,661 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 00:58:31,663 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 00:58:31,664 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 00:58:31,664 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 00:58:31,664 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 00:58:31,664 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 00:58:31,664 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 00:58:31,670 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 00:58:43,813 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 00:58:44,054 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 00:58:44,055 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 00:58:45,198 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 00:59:05,320 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 00:59:05,601 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 00:59:05,602 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 00:59:05,602 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 00:59:05,602 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 00:59:05,616 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 00:59:05,617 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 00:59:05,617 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 00:59:05,617 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 00:59:05,618 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 00:59:05,618 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 00:59:18,067 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 00:59:21,810 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 00:59:23,186 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 00:59:23,344 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 00:59:23,345 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 00:59:23,345 - src.packaging.model_variants - INFO - Distillation disabled in configuration
+2025-06-14 00:59:23,346 - src.packaging.model_variants - INFO - Creating quantized variants...
+2025-06-14 00:59:23,346 - src.packaging.model_variants - INFO - Creating quantized model variants...
+2025-06-14 00:59:23,482 - src.packaging.quantization - INFO - Creating quantized variants | Dynamic, PTQ, QAT...
+2025-06-14 00:59:23,483 - src.packaging.quantization - INFO - Running dynamic quantization...
+2025-06-14 00:59:23,675 - src.packaging.quantization - INFO - Starting dynamic quantization...
+2025-06-14 00:59:28,487 - src.packaging.quantization - INFO - Dynamic quantization | 295.21MB → 149.63MB | 1.97x compression | 49.3% reduction
+2025-06-14 00:59:31,023 - src.packaging.quantization - INFO - Saved quantized model to packaged_models/quantized/dynamic_quantized.pt
+2025-06-14 00:59:31,024 - src.packaging.quantization - INFO - Dynamic quantization completed successfully
+2025-06-14 00:59:33,692 - src.packaging.quantization - INFO - ✓ Dynamic quantization | Compression: 1.97x
+2025-06-14 00:59:33,692 - src.packaging.quantization - INFO - Running post-training quantization...
+2025-06-14 00:59:33,874 - src.packaging.quantization - INFO - Starting post-training quantization...
+2025-06-14 00:59:33,877 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:59:33,957 - src.packaging.quantization - INFO - Calibrating with 100 samples...
+2025-06-14 00:59:34,012 - src.packaging.quantization - ERROR - Post-training quantization failed: torch.histogram: input tensor and hist tensor should have the same dtype, but got input long long and hist float
+2025-06-14 00:59:34,013 - src.packaging.quantization - INFO - Running quantization-aware training...
+2025-06-14 00:59:34,219 - src.packaging.quantization - INFO - Starting quantization-aware training...
+2025-06-14 00:59:34,223 - src.packaging.quantization - INFO - Model prepared for quantization with QuantStub/DeQuantStub
+2025-06-14 00:59:37,293 - src.packaging.quantization - INFO - QAT Epoch 1/3
+2025-06-14 00:59:39,070 - src.packaging.quantization - ERROR - Quantization-aware training failed: expected scalar type Float but found Long
+2025-06-14 00:59:39,070 - src.packaging.quantization - INFO - Quantization completed | Methods: 1/3 successful
+2025-06-14 00:59:39,133 - src.packaging.model_variants - WARNING - Skipping failed quantization: ptq
+2025-06-14 00:59:39,133 - src.packaging.model_variants - WARNING - Skipping failed quantization: qat
+2025-06-14 00:59:39,134 - src.packaging.model_variants - INFO - Created 1 quantized variants
+2025-06-14 00:59:39,134 - src.packaging.model_variants - INFO - ✓ Created 1 quantized variants
+2025-06-14 00:59:39,134 - src.packaging.model_variants - INFO - Combined optimization disabled in configuration
+2025-06-14 00:59:39,134 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-14 00:59:39,135 - src.packaging.model_variants - INFO - Benchmarking 1 model variants...
+2025-06-14 00:59:39,135 - src.packaging.benchmarking - INFO - Benchmarking 1 model variants
+2025-06-14 00:59:39,135 - src.packaging.benchmarking - INFO - Benchmarking quantized_dynamic...
+2025-06-14 00:59:39,135 - src.packaging.benchmarking - ERROR - Failed to benchmark quantized_dynamic: 'checkpoint_path'
+2025-06-14 00:59:39,135 - src.packaging.benchmarking - INFO - Benchmarking completed | Results saved to packaged_models/benchmark_results
+2025-06-14 00:59:39,135 - src.packaging.model_variants - INFO - Benchmarking completed successfully
+2025-06-14 00:59:39,136 - src.packaging.model_variants - INFO - ✓ Benchmarking completed for 0 variants
+2025-06-14 00:59:39,136 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-14 00:59:39,136 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-14 00:59:39,141 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-14 00:59:39,142 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-14 00:59:39,142 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-14 00:59:39,143 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 1 | Baseline params: 76,852,305 | Best compression: 2.9x | Location: packaged_models
+2025-06-14 00:59:39,143 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-14 00:59:39,143 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 1 | Baseline params: 76,852,305
+2025-06-14 00:59:39,143 - __main__ - INFO - Results saved to: packaged_models
+2025-06-14 00:59:39,491 - __main__ - INFO - PIPELINE COMPLETED | Variants: 1 | Location: packaged_models
+2025-06-14 01:06:10,959 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 01:06:10,962 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 01:06:10,962 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 01:06:11,003 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 01:06:11,004 - __main__ - INFO - Enabled optimization methods: distillation
+2025-06-14 01:06:11,005 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 01:06:11,005 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation | Output: packaged_models
+2025-06-14 01:06:11,006 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 01:06:11,007 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 01:06:11,007 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 01:06:11,008 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 01:06:11,008 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 01:06:11,008 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 01:06:11,009 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 01:06:11,009 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 01:06:11,011 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 01:06:11,012 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 01:06:11,012 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 01:06:11,013 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 01:06:11,014 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 01:06:11,021 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 01:06:11,022 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 01:06:11,022 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 01:06:11,032 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 01:06:22,151 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 01:06:22,665 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 01:06:22,665 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 01:06:24,251 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 01:07:01,876 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 01:07:02,268 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 01:07:02,269 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 01:07:02,270 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 01:07:02,270 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 01:07:02,287 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 01:07:02,287 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 01:07:02,287 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 01:07:02,287 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 01:07:02,287 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 01:07:02,288 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 01:07:16,534 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 01:07:19,413 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 01:07:20,881 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 01:07:21,131 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 01:07:21,136 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 01:07:21,138 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-14 01:07:21,139 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-14 01:07:21,142 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-14 01:07:21,148 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-14 01:07:21,155 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 01:07:21,519 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-14 01:07:21,846 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-14 01:07:21,847 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 01:07:22,027 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-14 01:07:22,259 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-14 01:07:22,261 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 01:07:22,264 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-14 01:07:22,270 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-14 01:07:22,273 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-14 01:07:22,275 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 01:07:22,276 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-14 01:07:22,276 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 01:07:22,281 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-14 01:07:45,538 - src.packaging.distillation - ERROR - Failed to distill small student: not enough values to unpack (expected 3, got 2)
+2025-06-14 01:07:46,043 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 01:07:46,043 - src.packaging.distillation - INFO - DISTILLING TINY STUDENT MODEL
+2025-06-14 01:07:46,049 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 01:07:46,050 - src.packaging.distillation - INFO - Starting distillation for tiny student model...
+2025-06-14 01:07:59,207 - src.packaging.distillation - ERROR - Failed to distill tiny student: not enough values to unpack (expected 3, got 2)
+2025-06-14 01:07:59,359 - src.packaging.distillation - INFO - 
+Distillation completed for all students!
+2025-06-14 01:07:59,360 - src.packaging.model_variants - WARNING - Skipping failed distillation: small
+2025-06-14 01:07:59,360 - src.packaging.model_variants - WARNING - Skipping failed distillation: tiny
+2025-06-14 01:07:59,362 - src.packaging.model_variants - INFO - Created 0 distilled variants
+2025-06-14 01:07:59,363 - src.packaging.model_variants - INFO - ✓ Created 0 distilled variants
+2025-06-14 01:07:59,364 - src.packaging.model_variants - INFO - Quantization disabled in configuration
+2025-06-14 01:07:59,365 - src.packaging.model_variants - INFO - Combined optimization disabled in configuration
+2025-06-14 01:07:59,367 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-14 01:07:59,367 - src.packaging.model_variants - ERROR - Benchmarking failed: No variants available for benchmarking
+2025-06-14 01:07:59,370 - src.packaging.model_variants - WARNING - Continuing without benchmark results...
+2025-06-14 01:07:59,376 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-14 01:07:59,377 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-14 01:07:59,379 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-14 01:07:59,382 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-14 01:07:59,382 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-14 01:07:59,384 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 0 | Baseline params: 76,852,305 | Location: packaged_models
+2025-06-14 01:07:59,389 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-14 01:07:59,390 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 0 | Baseline params: 76,852,305
+2025-06-14 01:07:59,391 - __main__ - INFO - Results saved to: packaged_models
+2025-06-14 01:07:59,854 - __main__ - INFO - PIPELINE COMPLETED | Variants: 0 | Location: packaged_models
+2025-06-14 01:09:16,509 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 01:09:16,511 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 01:09:16,512 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 01:09:16,536 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 01:09:16,537 - __main__ - INFO - Enabled optimization methods: distillation
+2025-06-14 01:09:16,537 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 01:09:16,537 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation | Output: packaged_models
+2025-06-14 01:09:16,537 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 01:09:16,537 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 01:09:16,537 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 01:09:16,537 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 01:09:16,537 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 01:09:16,538 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 01:09:16,538 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 01:09:16,538 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 01:09:16,538 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 01:09:16,538 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 01:09:16,538 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 01:09:16,539 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 01:09:16,539 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 01:09:16,539 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 01:09:16,539 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 01:09:16,539 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 01:09:16,547 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 01:09:29,504 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 01:09:29,668 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 01:09:29,668 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 01:09:30,806 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 01:09:49,066 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 01:09:49,292 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 01:09:49,293 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 01:09:49,294 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 01:09:49,294 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 01:09:49,305 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 01:09:49,305 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 01:09:49,306 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 01:09:49,306 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 01:09:49,306 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 01:09:49,306 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 01:09:59,785 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 01:10:01,861 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 01:10:03,893 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 01:10:04,063 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 01:10:04,063 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 01:10:04,064 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-14 01:10:04,064 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-14 01:10:04,066 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-14 01:10:04,067 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-14 01:10:04,068 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 01:10:04,237 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-14 01:10:04,490 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-14 01:10:04,491 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 01:10:04,600 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-14 01:10:04,780 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-14 01:10:04,781 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 01:10:04,782 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-14 01:10:04,785 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-14 01:10:04,787 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-14 01:10:04,789 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 01:10:04,789 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-14 01:10:04,790 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 01:10:04,791 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-14 01:10:04,792 - src.packaging.distillation - INFO - DEBUG: Creating optimizer...
+2025-06-14 01:10:06,642 - src.packaging.distillation - INFO - DEBUG: Optimizer created successfully
+2025-06-14 01:10:06,642 - src.packaging.distillation - INFO - DEBUG: Creating scheduler...
+2025-06-14 01:10:06,645 - src.packaging.distillation - INFO - DEBUG: Scheduler created successfully
+2025-06-14 01:10:06,646 - src.packaging.distillation - INFO - DEBUG: Creating data generator...
+2025-06-14 01:10:06,646 - src.packaging.distillation - INFO - DEBUG: Data generator created successfully
+2025-06-14 01:10:06,646 - src.packaging.distillation - INFO - DEBUG: Starting training loop...
+2025-06-14 01:10:06,647 - src.packaging.distillation - INFO - DEBUG: Getting batch for step 0...
+2025-06-14 01:10:06,650 - src.packaging.distillation - INFO - DEBUG: Batch retrieved successfully for step 0
+2025-06-14 01:10:06,650 - src.packaging.distillation - INFO - DEBUG: Getting teacher predictions for step 0...
+2025-06-14 01:10:13,643 - src.packaging.distillation - INFO - DEBUG: Teacher predictions obtained for step 0
+2025-06-14 01:10:13,644 - src.packaging.distillation - INFO - DEBUG: Getting student predictions for step 0...
+2025-06-14 01:10:17,332 - src.packaging.distillation - INFO - DEBUG: Student predictions obtained for step 0
+2025-06-14 01:10:17,334 - src.packaging.distillation - INFO - DEBUG: Computing distillation loss for step 0...
+2025-06-14 01:10:17,334 - src.packaging.distillation - ERROR - DEBUG: Error occurred in distillation: not enough values to unpack (expected 3, got 2)
+2025-06-14 01:10:17,335 - src.packaging.distillation - ERROR - DEBUG: Error type: <class 'ValueError'>
+2025-06-14 01:10:17,345 - src.packaging.distillation - ERROR - DEBUG: Full traceback: Traceback (most recent call last):
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/src/packaging/distillation.py", line 521, in distill_student
+    loss, loss_components = self.distillation_loss(
+                            ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/src/packaging/distillation.py", line 143, in forward
+    batch_size, seq_len, vocab_size = student_logits.shape
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 3, got 2)
+
+2025-06-14 01:10:17,346 - src.packaging.distillation - ERROR - Failed to distill small student: not enough values to unpack (expected 3, got 2)
+2025-06-14 01:10:17,674 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 01:10:17,675 - src.packaging.distillation - INFO - DISTILLING TINY STUDENT MODEL
+2025-06-14 01:10:17,675 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 01:10:17,676 - src.packaging.distillation - INFO - Starting distillation for tiny student model...
+2025-06-14 01:10:17,677 - src.packaging.distillation - INFO - DEBUG: Creating optimizer...
+2025-06-14 01:10:17,678 - src.packaging.distillation - INFO - DEBUG: Optimizer created successfully
+2025-06-14 01:10:17,679 - src.packaging.distillation - INFO - DEBUG: Creating scheduler...
+2025-06-14 01:10:17,680 - src.packaging.distillation - INFO - DEBUG: Scheduler created successfully
+2025-06-14 01:10:17,681 - src.packaging.distillation - INFO - DEBUG: Creating data generator...
+2025-06-14 01:10:17,682 - src.packaging.distillation - INFO - DEBUG: Data generator created successfully
+2025-06-14 01:10:17,682 - src.packaging.distillation - INFO - DEBUG: Starting training loop...
+2025-06-14 01:10:17,684 - src.packaging.distillation - INFO - DEBUG: Getting batch for step 0...
+2025-06-14 01:10:17,689 - src.packaging.distillation - INFO - DEBUG: Batch retrieved successfully for step 0
+2025-06-14 01:10:17,691 - src.packaging.distillation - INFO - DEBUG: Getting teacher predictions for step 0...
+2025-06-14 01:10:25,420 - src.packaging.distillation - INFO - DEBUG: Teacher predictions obtained for step 0
+2025-06-14 01:10:25,420 - src.packaging.distillation - INFO - DEBUG: Getting student predictions for step 0...
+2025-06-14 01:10:26,301 - src.packaging.distillation - INFO - DEBUG: Student predictions obtained for step 0
+2025-06-14 01:10:26,301 - src.packaging.distillation - INFO - DEBUG: Computing distillation loss for step 0...
+2025-06-14 01:10:26,302 - src.packaging.distillation - ERROR - DEBUG: Error occurred in distillation: not enough values to unpack (expected 3, got 2)
+2025-06-14 01:10:26,303 - src.packaging.distillation - ERROR - DEBUG: Error type: <class 'ValueError'>
+2025-06-14 01:10:26,304 - src.packaging.distillation - ERROR - DEBUG: Full traceback: Traceback (most recent call last):
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/src/packaging/distillation.py", line 521, in distill_student
+    loss, loss_components = self.distillation_loss(
+                            ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/src/packaging/distillation.py", line 143, in forward
+    batch_size, seq_len, vocab_size = student_logits.shape
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 3, got 2)
+
+2025-06-14 01:10:26,305 - src.packaging.distillation - ERROR - Failed to distill tiny student: not enough values to unpack (expected 3, got 2)
+2025-06-14 01:10:26,408 - src.packaging.distillation - INFO - 
+Distillation completed for all students!
+2025-06-14 01:10:26,409 - src.packaging.model_variants - WARNING - Skipping failed distillation: small
+2025-06-14 01:10:26,410 - src.packaging.model_variants - WARNING - Skipping failed distillation: tiny
+2025-06-14 01:10:26,410 - src.packaging.model_variants - INFO - Created 0 distilled variants
+2025-06-14 01:10:26,412 - src.packaging.model_variants - INFO - ✓ Created 0 distilled variants
+2025-06-14 01:10:26,413 - src.packaging.model_variants - INFO - Quantization disabled in configuration
+2025-06-14 01:10:26,413 - src.packaging.model_variants - INFO - Combined optimization disabled in configuration
+2025-06-14 01:10:26,414 - src.packaging.model_variants - INFO - Step 5: Running comprehensive benchmarking...
+2025-06-14 01:10:26,415 - src.packaging.model_variants - ERROR - Benchmarking failed: No variants available for benchmarking
+2025-06-14 01:10:26,416 - src.packaging.model_variants - WARNING - Continuing without benchmark results...
+2025-06-14 01:10:26,417 - src.packaging.model_variants - INFO - Step 6: Saving results and generating reports...
+2025-06-14 01:10:26,418 - src.packaging.model_variants - INFO - Saving results and generating reports...
+2025-06-14 01:10:26,419 - src.packaging.model_variants - INFO - Results saved to: packaged_models/benchmark_results/packaging_results.json
+2025-06-14 01:10:26,422 - src.packaging.model_variants - INFO - Summary report saved to: packaged_models/benchmark_results/packaging_summary.txt
+2025-06-14 01:10:26,423 - src.packaging.model_variants - INFO - ✓ Results saved and reports generated successfully
+2025-06-14 01:10:26,424 - src.packaging.model_variants - INFO - PIPELINE SUCCESS | Variants: 0 | Baseline params: 76,852,305 | Location: packaged_models
+2025-06-14 01:10:26,424 - __main__ - INFO - Pipeline execution completed successfully
+2025-06-14 01:10:26,425 - __main__ - INFO - PACKAGING PIPELINE COMPLETED | Variants: 0 | Baseline params: 76,852,305
+2025-06-14 01:10:26,426 - __main__ - INFO - Results saved to: packaged_models
+2025-06-14 01:10:26,833 - __main__ - INFO - PIPELINE COMPLETED | Variants: 0 | Location: packaged_models
+2025-06-14 01:12:20,950 - __main__ - INFO - MODEL PACKAGING PIPELINE STARTED | PyTorch: 2.2.2 | CUDA: Not available | Log: packaging_transformer_e2e.log
+2025-06-14 01:12:20,951 - __main__ - INFO - Using config file: configs/packaging_config.yml
+2025-06-14 01:12:20,951 - __main__ - INFO - Loading and validating configuration...
+2025-06-14 01:12:20,992 - __main__ - INFO - Validating packaging configuration parameters...
+2025-06-14 01:12:20,992 - __main__ - INFO - Enabled optimization methods: distillation
+2025-06-14 01:12:20,992 - __main__ - INFO - All packaging configuration parameters validated successfully
+2025-06-14 01:12:20,992 - __main__ - INFO - Config | Run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0 | Project: Transformer_e2e | Methods: distillation | Output: packaged_models
+2025-06-14 01:12:20,993 - __main__ - INFO - Starting packaging pipeline...
+2025-06-14 01:12:20,993 - __main__ - INFO - Starting complete packaging pipeline...
+2025-06-14 01:12:20,993 - __main__ - INFO - Initializing ModelVariantsManager...
+2025-06-14 01:12:20,994 - src.packaging.model_variants - INFO - ModelVariantsManager initialized on device: cpu
+2025-06-14 01:12:20,994 - src.packaging.distillation - INFO - ModelDistiller initialized on device: cpu
+2025-06-14 01:12:20,995 - src.packaging.quantization - INFO - ModelQuantizer initialized on device: cpu
+2025-06-14 01:12:20,995 - src.packaging.quantization_aware_distillation - INFO - QuantizationAwareDistiller initialized on device: cpu
+2025-06-14 01:12:20,996 - src.packaging.benchmarking - INFO - ModelBenchmarker initialized on device: cpu
+2025-06-14 01:12:20,996 - src.packaging.benchmarking - WARNING - SacreBLEU not available. Using NLTK for BLEU scores.
+2025-06-14 01:12:20,996 - src.packaging.benchmarking - WARNING - Memory profiler not available. Memory usage will be estimated.
+2025-06-14 01:12:20,999 - src.packaging.model_variants - INFO - Output directories created under: packaged_models
+2025-06-14 01:12:20,999 - __main__ - INFO - ✓ ModelVariantsManager initialized successfully
+2025-06-14 01:12:21,000 - __main__ - INFO - Running complete packaging pipeline...
+2025-06-14 01:12:21,000 - src.packaging.model_variants - INFO - Starting complete packaging pipeline...
+2025-06-14 01:12:21,000 - src.packaging.model_variants - INFO - Step 1: Setting up data preprocessing...
+2025-06-14 01:12:21,000 - src.packaging.model_variants - INFO - Setting up data preprocessing...
+2025-06-14 01:12:21,012 - src.data.processing - INFO - Loading wikitext dataset.
+2025-06-14 01:12:33,156 - src.data.processing - INFO - Successfully loaded dataset.
+2025-06-14 01:12:33,382 - src.data.processing - INFO - Truncated wikitext to 10929707 characters for CPU training.
+2025-06-14 01:12:33,383 - src.data.processing - INFO - Loading tokenizer 'gpt2'...
+2025-06-14 01:12:34,872 - src.data.processing - INFO - Tokenizing the entire dataset..
+2025-06-14 01:13:03,501 - src.data.processing - INFO - Tokenization complete. Total tokens: 2403644
+2025-06-14 01:13:03,800 - src.data.processing - INFO - Train tokens: 1946952, Val tokens: 216327, Test tokens: 240365
+2025-06-14 01:13:03,801 - src.packaging.model_variants - INFO - Data preprocessing completed | Dataset: wikitext | Vocab: 50,257 | Tokens - Train: 1,946,952, Val: 216,327, Test: 240,365
+2025-06-14 01:13:03,803 - src.packaging.model_variants - INFO - ✓ Data preprocessing completed successfully
+2025-06-14 01:13:03,803 - src.packaging.model_variants - INFO - Step 2: Loading model configuration...
+2025-06-14 01:13:03,820 - src.packaging.model_variants - INFO - Calculating student architectures from base model...
+2025-06-14 01:13:03,821 - src.packaging.model_variants - INFO - Student 'small': 4 layers, 4 heads, 384 dim
+2025-06-14 01:13:03,821 - src.packaging.model_variants - INFO - Student 'tiny': 2 layers, 4 heads, 256 dim
+2025-06-14 01:13:03,821 - src.packaging.model_variants - INFO - ✓ Model configuration loaded successfully
+2025-06-14 01:13:03,821 - src.packaging.model_variants - INFO - Step 3: Loading baseline model from W&B...
+2025-06-14 01:13:03,821 - src.packaging.model_variants - INFO - Loading baseline model from W&B run: Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0
+2025-06-14 01:13:18,082 - src.packaging.model_variants - INFO - Found checkpoint: /Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/artifacts/Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0/run_single_bs32_cw256_lr3e-4_best.pt
+2025-06-14 01:13:21,658 - src.models.transformer - INFO - Using uniform dropout rate of 0.15 for all 8 layers.
+2025-06-14 01:13:23,232 - src.packaging.model_variants - INFO - Baseline model loaded | Params: 76,852,305 | Size: 293.2 MB
+2025-06-14 01:13:23,465 - src.packaging.model_variants - INFO - ✓ Baseline model loaded: 76,852,305 parameters
+2025-06-14 01:13:23,466 - src.packaging.model_variants - INFO - Step 4: Creating optimized model variants...
+2025-06-14 01:13:23,469 - src.packaging.model_variants - INFO - Creating distilled variants...
+2025-06-14 01:13:23,471 - src.packaging.model_variants - INFO - Creating distilled model variants...
+2025-06-14 01:13:23,474 - src.packaging.distillation - INFO - Teacher model set | Parameters: 76,852,305
+2025-06-14 01:13:23,475 - src.packaging.distillation - INFO - Creating student models from calculated architectures...
+2025-06-14 01:13:23,476 - src.packaging.distillation - INFO - Creating small student model: {'num_layers': 4, 'num_heads': 4, 'channel_dim': 384, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 01:13:23,651 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 4 layers. Result: [0.15, 0.2, 0.25, 0.3]
+2025-06-14 01:13:23,943 - src.packaging.distillation - INFO - Small student parameters: 45,839,953
+2025-06-14 01:13:23,945 - src.packaging.distillation - INFO - Creating tiny student model: {'num_layers': 2, 'num_heads': 4, 'channel_dim': 256, 'context_window': 256, 'dropout_rate': 0.15}
+2025-06-14 01:13:24,090 - src.models.transformer - INFO - Linearly scaling dropout from 0.150 to 0.300 over 2 layers. Result: [0.15, 0.3]
+2025-06-14 01:13:24,293 - src.packaging.distillation - INFO - Tiny student parameters: 27,425,873
+2025-06-14 01:13:24,295 - src.packaging.distillation - INFO - Teacher model parameters: 76,852,305
+2025-06-14 01:13:24,297 - src.packaging.distillation - INFO - Small compression ratio: 1.68x
+2025-06-14 01:13:24,298 - src.packaging.distillation - INFO - Tiny compression ratio: 2.80x
+2025-06-14 01:13:24,298 - src.packaging.distillation - INFO - Starting distillation for all student architectures...
+2025-06-14 01:13:24,304 - src.packaging.distillation - INFO - 
+============================================================
+2025-06-14 01:13:24,306 - src.packaging.distillation - INFO - DISTILLING SMALL STUDENT MODEL
+2025-06-14 01:13:24,307 - src.packaging.distillation - INFO - ============================================================
+2025-06-14 01:13:24,307 - src.packaging.distillation - INFO - Starting distillation for small student model...
+2025-06-14 01:13:24,308 - src.packaging.distillation - INFO - DEBUG: Creating optimizer...
+2025-06-14 01:13:27,446 - src.packaging.distillation - INFO - DEBUG: Optimizer created successfully
+2025-06-14 01:13:27,447 - src.packaging.distillation - INFO - DEBUG: Creating scheduler...
+2025-06-14 01:13:27,460 - src.packaging.distillation - INFO - DEBUG: Scheduler created successfully
+2025-06-14 01:13:27,461 - src.packaging.distillation - INFO - DEBUG: Creating data generator...
+2025-06-14 01:13:27,463 - src.packaging.distillation - INFO - DEBUG: Data generator created successfully
+2025-06-14 01:13:27,467 - src.packaging.distillation - INFO - DEBUG: Starting training loop...
+2025-06-14 01:13:27,471 - src.packaging.distillation - INFO - DEBUG: Getting batch for step 0...
+2025-06-14 01:13:27,483 - src.packaging.distillation - INFO - DEBUG: Batch retrieved successfully for step 0
+2025-06-14 01:13:27,484 - src.packaging.distillation - INFO - DEBUG: Getting teacher predictions for step 0...
+2025-06-14 01:13:59,590 - src.packaging.distillation - INFO - DEBUG: Teacher predictions obtained for step 0, shape: torch.Size([32, 256, 50257])
+2025-06-14 01:13:59,600 - src.packaging.distillation - INFO - DEBUG: Getting student predictions for step 0...
+2025-06-14 01:14:50,250 - src.packaging.distillation - INFO - DEBUG: Student predictions obtained for step 0, shape: torch.Size([32, 256, 50257])
+2025-06-14 01:14:50,277 - src.packaging.distillation - INFO - DEBUG: Computing distillation loss for step 0...

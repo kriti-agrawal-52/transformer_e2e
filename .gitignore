@@ -14,4 +14,7 @@ wandb_cleanup.py
 finetuning_docs/
 transformer_main.log
 wandb/
+packaged_models/
+artifacts/
+data/
 

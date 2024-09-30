@@ -1,0 +1,321 @@
+# configs/packaging_config.yml
+# ===============================================
+# Model Packaging Configuration
+# ===============================================
+#
+# This configuration file controls the model optimization and packaging pipeline.
+# It defines settings for knowledge distillation, quantization, benchmarking,
+# and deployment preparation.
+#
+# WHAT IS MODEL PACKAGING?
+# ========================
+# Model packaging is the process of creating optimized versions of your trained
+# model that are suitable for different deployment scenarios. This includes:
+#
+# 1. Knowledge Distillation: Creating smaller models that retain most accuracy
+# 2. Quantization: Reducing model precision for faster inference
+# 3. Benchmarking: Measuring performance trade-offs
+# 4. Deployment Preparation: Creating ready-to-deploy model variants
+#
+# CONFIGURATION SECTIONS:
+# ======================
+# - source: Information about the original model
+# - output: Where to save optimized models and results
+# - optimization: Settings for distillation and quantization
+# - benchmarking: Performance evaluation parameters
+# - variants: Which model variants to create
+
+# ===============================================
+# BASE MODEL CONFIGURATION
+# ===============================================
+base_model:
+  # Path to the base model configuration file
+  # This contains the architecture details (channel_dim, num_layers, etc.)
+  config_path: "configs/config.yml"
+
+  # Model architecture will be loaded from the base config:
+  # - CHANNEL_DIM: Embedding dimension
+  # - NUM_LAYERS: Number of transformer layers
+  # - NUM_HEADS: Number of attention heads
+  # - CONTEXT_WINDOW: Maximum sequence length
+  # - DROPOUT_RATE: Dropout rate for regularization
+
+# ===============================================
+# OUTPUT CONFIGURATION
+# ===============================================
+output:
+  # Base directory for all packaging outputs
+  output_dir: "packaged_models"
+
+  # Subdirectories for different outputs
+  models_dir: "optimized_models" # Optimized model files
+  results_dir: "benchmark_results" # Performance evaluation results
+  configs_dir: "configurations" # Generated configurations
+
+  # Deployment package settings
+  create_deployment_package: true
+  package_dir: "deployment_package"
+
+# ===============================================
+# OPTIMIZATION METHODS
+# ===============================================
+# PACKAGING SCENARIOS EXPLAINED:
+# ==============================
+# 1. DISTILLATION ONLY: Train smaller student models using knowledge distillation from base model
+# 2. QUANTIZATION ONLY: Apply post-training quantization (PTQ) to base model - no retraining needed
+# 3. COMBINED (Quantization-Aware Distillation): Train quantized student models with QAD
+#    - Student models learn with quantization simulation during distillation training
+#    - This creates small AND quantized models with optimal accuracy retention
+#
+# PERFORMANCE COMPARISON:
+# - PTQ: Fastest (no training), good performance, some accuracy loss
+# - QAT: Slower (requires training), best performance for quantization, minimal accuracy loss
+# - QAD: Best for combined optimization (small + quantized), superior to sequential approach
+
+optimization:
+  # Which optimization methods to apply
+  methods:
+    create_distilled: true # Knowledge distillation
+    create_quantized: false # Model quantization
+    create_combined: false # Both distillation + quantization
+
+  # Knowledge Distillation Settings
+  distillation:
+    # Training parameters for normal distillation
+    learning_rate: 0.0001
+    batch_size: 32
+    num_epochs: 10
+    patience: 3 # Early stopping patience
+
+    # Distillation parameters
+    temperature: 4.0 # Softmax temperature for distillation
+    alpha: 0.7 # Weight for distillation loss
+
+    # Incremental dropout configuration (matching your teacher model)
+    dropout_rate: 0.15 # Starting dropout rate for bottom layers
+    final_dropout_multiplier: 3.0 # Multiplier for final layer dropout
+    max_dropout_val: 0.3 # Maximum dropout value cap
+
+    # Optimizer settings for normal distillation
+    optimizer:
+      type: "AdamW"
+      weight_decay: 0.01
+      betas: [0.9, 0.999]
+      eps: 0.00000001 # 1e-8 as a decimal to avoid string parsing issues
+
+    # Learning rate scheduler
+    scheduler:
+      type: "ReduceLROnPlateau"
+      mode: "min"
+      factor: 0.5
+      patience: 5
+      verbose: true
+
+    # Student architectures to create
+    # Each student will be a smaller version of the teacher
+    # Architecture dimensions are calculated as fractions of base model
+    student_architectures:
+      small:
+        # Half the complexity of baseline model
+        num_layers_ratio: 0.5 # 8 layers -> 4 layers
+        num_heads_ratio: 0.5 # 8 heads -> 4 heads
+        channel_dim_ratio: 0.75 # 512 -> 384 embedding dimension
+
+      tiny:
+        # Quarter the complexity for very small model
+        num_layers_ratio: 0.25 # 8 layers -> 2 layers
+        num_heads_ratio: 0.5 # 8 heads -> 4 heads (minimum viable)
+        channel_dim_ratio: 0.5 # 512 -> 256 embedding dimension
+
+  # Combined Optimization Settings (Quantization-Aware Distillation)
+  combined:
+    # QAD requires different parameters than normal distillation
+    # Lower learning rate due to quantization noise
+    learning_rate: 0.00005 # Half of normal distillation
+    batch_size: 32
+    num_epochs: 15 # More epochs for QAD convergence
+    patience: 5 # More patience for QAD
+
+    # QAD-specific distillation parameters
+    temperature: 5.0 # Higher temperature for QAD (more smoothing)
+    alpha: 0.8 # Higher weight for teacher knowledge in QAD
+
+    # Optimizer settings for QAD (more conservative)
+    optimizer:
+      type: "AdamW"
+      weight_decay: 0.005 # Lower weight decay for QAD
+      betas: [0.9, 0.999]
+      eps: 0.00000001 # 1e-8 as a decimal to avoid string parsing issues
+
+    # Learning rate scheduler for QAD
+    scheduler:
+      type: "ReduceLROnPlateau"
+      mode: "min"
+      factor: 0.7 # Less aggressive LR reduction
+      patience: 7 # More patience for QAD
+      verbose: true
+
+    # Quantization settings for combined optimization
+    quantization:
+      backend: "fbgemm"
+      calibration_samples: 100
+
+  # Model Quantization Settings
+  quantization:
+    # QUANTIZATION SCENARIOS:
+    # 1. Quantization only: Post-training quantization (PTQ) of base model - fastest, good performance
+    # 2. Combined with Distillation: Quantization-Aware Distillation (QAD) - best quality
+    #    - QAD trains student models with quantization simulation from the start
+    #    - Superior to sequential distillation → quantization approach
+
+    # Primary quantization method (used for "quantization only" scenario)
+    primary_method: "post_training_quantization" # PTQ is faster and works well for most cases
+
+    # Quantization methods to apply
+    methods:
+      post_training_quantization: true # PTQ: Fast, no retraining (used for base model quantization)
+      quantization_aware_training: true # QAT: Better accuracy, used during distillation training
+      dynamic_quantization: false # Dynamic: Usually not needed, can enable for comparison
+
+    # PTQ settings (for base model quantization)
+    ptq:
+      calibration_samples: 100 # Samples for calibration
+      backend: "fbgemm" # Quantization backend (fbgemm, qnnpack)
+
+    # QAT settings (for distillation + quantization scenario)
+    # Note: When doing combined distillation + quantization, QAT happens during
+    # the distillation training using the same epochs and learning rate as distillation
+    qat:
+      batch_size: 32 # Can be different from distillation batch size if needed
+
+    # Dynamic quantization settings (optional)
+    dynamic:
+      qconfig_spec:
+        # Layers to quantize (empty means all linear layers)
+        target_modules: []
+
+# ===============================================
+# BENCHMARKING CONFIGURATION
+# ===============================================
+benchmarking:
+  # Evaluation settings
+  evaluation:
+    perplexity_samples: 500 # Samples for perplexity calculation
+    bleu_samples: 100 # Samples for BLEU score calculation
+    generation_length: 50 # Length of generated text for evaluation
+
+    # Performance measurement
+    speed_samples: 50 # Samples for speed measurement
+    memory_samples: 10 # Samples for memory profiling
+    warmup_steps: 5 # Warmup iterations before measurement
+
+  # Generation parameters for quality evaluation
+  generation:
+    temperature: 0.7 # Generation temperature
+    top_k: 50 # Top-k sampling
+
+    # Evaluation prompts for text generation quality
+    eval_prompts:
+      - "The future of artificial intelligence"
+      - "In a world where technology"
+      - "The scientist discovered that"
+      - "Once upon a time in a distant"
+      - "The key to understanding the universe"
+
+  # Hardware monitoring
+  monitoring:
+    monitor_cpu: true # Monitor CPU usage
+    monitor_memory: true # Monitor memory usage
+    monitor_gpu: true # Monitor GPU usage (if available)
+
+  # Comparison settings
+  comparison:
+    create_plots: true # Generate comparison plots
+    save_detailed_results: true # Save detailed benchmark data
+
+# ===============================================
+# VARIANT CREATION SETTINGS
+# ===============================================
+variants:
+  # Model export formats
+  export_formats:
+    pytorch: true # Standard PyTorch .pt format
+    torchscript: true # TorchScript for deployment
+    onnx: false # ONNX format (requires onnx package)
+
+  # Model validation
+  validation:
+    run_smoke_tests: true # Basic functionality tests
+    verify_model_integrity: true # Hash-based verification
+
+  # Deployment preparation
+  deployment:
+    create_inference_configs: true # Generate inference configurations
+    create_docker_configs: false # Docker deployment configs (future)
+    create_api_examples: true # API usage examples
+
+# ===============================================
+# COMPUTE CONFIGURATION
+# ===============================================
+compute:
+  # Device settings
+  device: "auto" # "auto", "cuda", "cpu"
+
+  # Memory management
+  clear_cache_between_steps: true # Clear GPU cache between operations
+  memory_efficient_mode: false # Use memory-efficient operations (slower)
+
+  # Parallel processing
+  num_workers: 4 # Number of data loader workers
+  pin_memory: true # Pin memory for faster GPU transfer
+
+# ===============================================
+# W&B INTEGRATION
+# ===============================================
+wandb:
+  # Use single project for all packaging experiments
+  enabled: true
+  project: "Transformer_e2e"
+
+  # Source model information
+  source_run_id: "Transformer_e2e_model-single_bs32_cw256_lr3e-4:v0" # W&B artifact name of the baseline model to optimize
+
+  # Tags for different experiment types
+  tags:
+    packaging: ["packaging", "optimization"]
+    distillation: ["distillation", "knowledge_transfer"]
+    quantization: ["quantization", "compression"]
+    combined: ["distillation", "quantization", "combined"]
+
+# ===============================================
+# ADVANCED SETTINGS
+# ===============================================
+advanced:
+  # Error handling
+  continue_on_errors: true # Continue pipeline if one step fails
+  max_retries: 2 # Number of retries for failed operations
+
+  # Resource limits
+  max_memory_gb: null # Maximum memory usage (null = no limit)
+  timeout_minutes: 120 # Maximum time for entire pipeline
+
+  # Cleanup settings
+  cleanup_temp_files: true # Clean up temporary files after completion
+  keep_intermediate_models: false # Keep intermediate model checkpoints
+
+# ===============================================
+# EXAMPLE OVERRIDES
+# ===============================================
+# You can override any of these settings by creating environment-specific
+# config files or by passing parameters programmatically.
+#
+# For example, to create a "fast" configuration for testing:
+# - Reduce num_epochs for distillation
+# - Reduce sample counts for benchmarking
+# - Disable some optimization methods
+#
+# For a "production" configuration:
+# - Increase training epochs
+# - Enable all optimization methods
+# - Increase benchmark sample sizes
+# - Enable all export formats
