@@ -1,0 +1,31 @@
+# generate_config.yml - Configuration for Text Generation
+
+# Model loading
+# Path to the local model checkpoint file (.pt)
+CHECKPOINT_PATH: "/Users/kritiagrawal/Desktop/job_practice/ml_engineering/transformer_e2e/model_checkpoints/run_single_bs12_cw16_lr3e-4_2_best.pt"
+
+# W&B run_id associated with the checkpoint (to fetch its training config)
+RUN_ID: "single_bs12_cw16_lr3e-4_2"
+
+# Path to the main training config.yml (needed to find W&B project name)
+MAIN_CONFIG_PATH: "configs/config.yml"
+
+# Generation parameters
+
+# Prompt text
+PROMPT: "The old man sat by the window"
+
+# Maximum number of new tokens to generate
+MAX_TOKENS: 100
+
+# Sampling temperature (e.g., 0.7). Use 0 for greedy decoding.
+TEMPERATURE: 0.7
+
+# Top-K sampling (e.g., 40). Use 0 or null to disable.
+TOP_K: 40
+
+# --- Environment ---
+# Device to use ('cuda', 'cpu', or 'auto' for auto-detect)
+DEVICE: auto
+
+LOG_FILE: "transformer_epic_generate.log"

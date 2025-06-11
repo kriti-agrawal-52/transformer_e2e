@@ -4,3 +4,14 @@ venv/
 
 # miscellanous files
 organiser.py
+
+__pycache__
+model_checkpoints/
+train_eval_plots/
+transformer_epic_model.log
+wandb_cleanup.py
+
+finetuning_docs/
+transformer_main.log
+wandb/
+
